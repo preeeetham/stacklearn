@@ -43,10 +43,24 @@ export async function streamChat(
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let receivedContent = false;
 
     try {
         while (true) {
-            const { done, value } = await reader.read();
+            let readResult;
+            try {
+                readResult = await reader.read();
+            } catch {
+                // Connection dropped (ERR_INCOMPLETE_CHUNKED_ENCODING)
+                // If we received any content, treat as partial completion
+                if (receivedContent) {
+                    callbacks.onDone();
+                    return;
+                }
+                throw new Error("Connection lost before any data was received");
+            }
+
+            const { done, value } = readResult;
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
@@ -63,7 +77,10 @@ export async function streamChat(
 
                     switch (event.type) {
                         case "text":
-                            if (event.content) callbacks.onText(event.content);
+                            if (event.content) {
+                                receivedContent = true;
+                                callbacks.onText(event.content);
+                            }
                             break;
                         case "tool_call":
                             callbacks.onToolCall(event.tool || "", event.url, event.reason);
