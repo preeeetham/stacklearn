@@ -21,11 +21,23 @@ interface StreamCallbacks {
 export async function createChatCompletion(
     messages: OpenRouterMessage[],
     model: string,
-    callbacks: StreamCallbacks
+    callbacks: StreamCallbacks,
+    useTools: boolean = true
 ): Promise<void> {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
         throw new Error("OPENROUTER_API_KEY is not set");
+    }
+
+    const body: Record<string, unknown> = {
+        model,
+        messages,
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 8192,
+    };
+    if (useTools) {
+        body.tools = TOOL_DEFINITIONS;
     }
 
     const response = await fetch(OPENROUTER_API_URL, {
@@ -36,14 +48,7 @@ export async function createChatCompletion(
             "HTTP-Referer": "https://stacklearn.dev",
             "X-Title": "StackLearn",
         },
-        body: JSON.stringify({
-            model,
-            messages,
-            tools: TOOL_DEFINITIONS,
-            stream: true,
-            temperature: 0.7,
-            max_tokens: 8192,
-        }),
+        body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -168,7 +173,8 @@ export async function createChatCompletion(
  */
 export async function createChatCompletionNonStreaming(
     messages: OpenRouterMessage[],
-    model: string
+    model: string,
+    useTools: boolean = true
 ): Promise<{
     content: string | null;
     toolCalls: OpenRouterToolCall[];
@@ -179,6 +185,17 @@ export async function createChatCompletionNonStreaming(
         throw new Error("OPENROUTER_API_KEY is not set");
     }
 
+    const body: Record<string, unknown> = {
+        model,
+        messages,
+        stream: false,
+        temperature: 0.7,
+        max_tokens: 8192,
+    };
+    if (useTools) {
+        body.tools = TOOL_DEFINITIONS;
+    }
+
     const response = await fetch(OPENROUTER_API_URL, {
         method: "POST",
         headers: {
@@ -187,14 +204,7 @@ export async function createChatCompletionNonStreaming(
             "HTTP-Referer": "https://stacklearn.dev",
             "X-Title": "StackLearn",
         },
-        body: JSON.stringify({
-            model,
-            messages,
-            tools: TOOL_DEFINITIONS,
-            stream: false,
-            temperature: 0.7,
-            max_tokens: 8192,
-        }),
+        body: JSON.stringify(body),
     });
 
     if (!response.ok) {

@@ -73,50 +73,78 @@ export async function runAgent(
 
     let iterations = 0;
     let fullResponseText = "";
+    let useTools = true;
 
+    // Try first request — if tools aren't supported, retry without them
     while (iterations < MAX_TOOL_ITERATIONS) {
         iterations++;
 
         let pendingToolCalls: OpenRouterToolCall[] = [];
         let finishReason: string | null = null;
         let streamedText = "";
+        let needsRetryWithoutTools = false;
 
         // We stream text to the client. If tool calls happen, we handle them.
-        await new Promise<void>((resolve, reject) => {
-            createChatCompletion(openRouterMessages, selectedModel, {
-                onTextChunk(text) {
-                    // Buffer text and check for playground_config start
-                    streamedText += text;
+        try {
+            await new Promise<void>((resolve, reject) => {
+                createChatCompletion(openRouterMessages, selectedModel, {
+                    onTextChunk(text) {
+                        // Buffer text and check for playground_config start
+                        streamedText += text;
 
-                    // Check if we're inside a playground_config block
-                    const configStart = streamedText.indexOf("<playground_config>");
-                    if (configStart === -1) {
-                        // Not inside config block, safe to stream everything
-                        writer.send({ type: "text", content: text });
-                    } else {
-                        // We've started receiving playground config — only send text before the tag
-                        const beforeConfig = text.substring(
-                            0,
-                            Math.max(0, configStart - (streamedText.length - text.length))
-                        );
-                        if (beforeConfig) {
-                            writer.send({ type: "text", content: beforeConfig });
+                        // Check if we're inside a playground_config block
+                        const configStart = streamedText.indexOf("<playground_config>");
+                        if (configStart === -1) {
+                            // Not inside config block, safe to stream everything
+                            writer.send({ type: "text", content: text });
+                        } else {
+                            // We've started receiving playground config — only send text before the tag
+                            const beforeConfig = text.substring(
+                                0,
+                                Math.max(0, configStart - (streamedText.length - text.length))
+                            );
+                            if (beforeConfig) {
+                                writer.send({ type: "text", content: beforeConfig });
+                            }
+                            // Don't send the playground config text to the chat
                         }
-                        // Don't send the playground config text to the chat
-                    }
-                },
-                onToolCall(toolCall) {
-                    pendingToolCalls.push(toolCall);
-                },
-                onDone(reason) {
-                    finishReason = reason;
-                    resolve();
-                },
-                onError(error) {
-                    reject(error);
-                },
-            }).catch(reject);
-        });
+                    },
+                    onToolCall(toolCall) {
+                        pendingToolCalls.push(toolCall);
+                    },
+                    onDone(reason) {
+                        finishReason = reason;
+                        resolve();
+                    },
+                    onError(error) {
+                        reject(error);
+                    },
+                }, useTools).catch(reject);
+            });
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+
+            // Check if the error is about tool use not being supported
+            if (
+                useTools &&
+                iterations === 1 &&
+                (errorMsg.includes("tool use") ||
+                    errorMsg.includes("tool_use") ||
+                    errorMsg.includes("tools") ||
+                    errorMsg.includes("No endpoints found"))
+            ) {
+                console.log(`Model ${selectedModel} doesn't support tools, retrying without tools...`);
+                useTools = false;
+                needsRetryWithoutTools = true;
+                iterations = 0; // Reset counter
+            } else {
+                throw error;
+            }
+        }
+
+        if (needsRetryWithoutTools) {
+            continue;
+        }
 
         fullResponseText += streamedText;
 
