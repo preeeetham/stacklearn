@@ -62,42 +62,41 @@ export async function mountProject(
 }
 
 /**
+ * Register a one-time listener for server-ready events. Call this once after
+ * boot (not per run) so listeners don't stack up across re-runs.
+ */
+export function onServerReady(
+    wc: WebContainer,
+    handler: (port: number, url: string) => void
+): void {
+    wc.on("server-ready", (port, url) => handler(port, url));
+}
+
+/**
  * Run the project: install dependencies, then execute the start command.
  */
 export async function runProject(
     wc: WebContainer,
     config: PlaygroundConfig,
-    onOutput: (data: string) => void,
-    onServerReady?: (port: number, url: string) => void
+    onOutput: (data: string) => void
 ): Promise<void> {
-    // Listen for server-ready events
-    if (onServerReady) {
-        wc.on("server-ready", (port, url) => {
-            onServerReady(port, url);
-        });
-    }
-
     // Install dependencies
-    onOutput("$ " + config.installCommand + "\\n");
+    onOutput("$ " + config.installCommand + "\n");
     const installParts = config.installCommand.split(" ");
     const installProcess = await wc.spawn(installParts[0], installParts.slice(1));
-    installProcess.output.pipeTo(
-        new WritableStream({ write: onOutput })
-    );
+    installProcess.output.pipeTo(new WritableStream({ write: onOutput }));
     const installExitCode = await installProcess.exit;
     if (installExitCode !== 0) {
-        onOutput(`\\n❌ Install failed with exit code ${installExitCode}\\n`);
+        onOutput(`\n❌ Install failed with exit code ${installExitCode}\n`);
         return;
     }
-    onOutput("\\n✅ Dependencies installed\\n\\n");
+    onOutput("\n✅ Dependencies installed\n\n");
 
     // Run start command
-    onOutput("$ " + config.startCommand + "\\n");
+    onOutput("$ " + config.startCommand + "\n");
     const startParts = config.startCommand.split(" ");
     const startProcess = await wc.spawn(startParts[0], startParts.slice(1));
-    startProcess.output.pipeTo(
-        new WritableStream({ write: onOutput })
-    );
+    startProcess.output.pipeTo(new WritableStream({ write: onOutput }));
 }
 
 /**

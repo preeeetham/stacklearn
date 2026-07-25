@@ -6,6 +6,7 @@ import {
     runProject,
     writeFile,
     teardownWebContainer,
+    onServerReady,
 } from "../lib/webcontainers";
 import type { WebContainer } from "@webcontainer/api";
 
@@ -41,6 +42,9 @@ export function usePlayground() {
                 const wc = await bootWebContainer();
                 if (!cancelled) {
                     wcRef.current = wc;
+                    // Register the server-ready listener once for the lifetime of
+                    // this container so preview URLs update on every run.
+                    onServerReady(wc, (_port, url) => setPreviewUrl(url));
                     setBooted(true);
                 }
             } catch (err) {
@@ -76,16 +80,9 @@ export function usePlayground() {
                 setInstalling(false);
                 setRunning(true);
 
-                await runProject(
-                    wc,
-                    config!,
-                    (data) => {
-                        if (!cancelled) addTerminalOutput(data);
-                    },
-                    (port, url) => {
-                        if (!cancelled) setPreviewUrl(url);
-                    }
-                );
+                await runProject(wc, config!, (data) => {
+                    if (!cancelled) addTerminalOutput(data);
+                });
             } catch (err) {
                 if (!cancelled) {
                     addTerminalOutput(
@@ -131,12 +128,7 @@ export function usePlayground() {
 
             setInstalling(false);
 
-            await runProject(
-                wcRef.current,
-                config,
-                (data) => addTerminalOutput(data),
-                (port, url) => setPreviewUrl(url)
-            );
+            await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
         } catch (err) {
             addTerminalOutput(
                 `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
@@ -159,12 +151,7 @@ export function usePlayground() {
             await mountProject(wcRef.current, config);
             setInstalling(false);
 
-            await runProject(
-                wcRef.current,
-                config,
-                (data) => addTerminalOutput(data),
-                (port, url) => setPreviewUrl(url)
-            );
+            await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
         } catch (err) {
             addTerminalOutput(
                 `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
