@@ -17,11 +17,13 @@ interface ChatState {
     clearMessages: () => void;
 }
 
+const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+
 const getStoredModel = (): string => {
     try {
-        return localStorage.getItem("stacklearn-model") || "anthropic/claude-3.5-sonnet";
+        return localStorage.getItem("stacklearn-model") || DEFAULT_MODEL;
     } catch {
-        return "anthropic/claude-3.5-sonnet";
+        return DEFAULT_MODEL;
     }
 };
 
