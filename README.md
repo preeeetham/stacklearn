@@ -76,6 +76,20 @@ This starts both servers:
 - **Frontend**: http://localhost:5173
 - **Backend**: http://localhost:3001
 
+## Playground Features
+
+The Playground Panel supports live editing, in-browser execution, and toast notifications for actions like running, saving, and resetting code.
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Cmd/Ctrl + Enter` | Run (or Stop if already running) |
+| `Cmd/Ctrl + S` | Save file to WebContainer |
+| `Cmd/Ctrl + Shift + R` | Reset playground |
+| `` Cmd/Ctrl + ` `` | Toggle terminal focus |
+| `Cmd/Ctrl + W` | Close active tab |
+
 ## Tech Stack
 
 | Layer | Technology |
