@@ -6,6 +6,7 @@ export interface ChatMessage {
     content: string;
     toolCalls?: ToolCallInfo[];
     playgroundConfig?: PlaygroundConfig;
+    followUps?: string[];
     isStreaming?: boolean;
 }
 
@@ -26,12 +27,20 @@ export interface PlaygroundConfig {
 }
 
 export interface SSEEvent {
-    type: "text" | "tool_call" | "tool_result" | "playground_config" | "done" | "error";
+    type:
+        | "text"
+        | "tool_call"
+        | "tool_result"
+        | "playground_config"
+        | "follow_ups"
+        | "done"
+        | "error";
     content?: string;
     tool?: string;
     url?: string;
     reason?: string;
     config?: PlaygroundConfig;
+    questions?: string[];
     message?: string;
 }
 

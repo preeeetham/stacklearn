@@ -105,6 +105,32 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     </div>
                 )}
 
+                {/* Suggested follow-up questions */}
+                {!isUser &&
+                    !message.isStreaming &&
+                    message.followUps &&
+                    message.followUps.length > 0 && (
+                        <div className="mt-3">
+                            <p className="text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
+                                Ask next
+                            </p>
+                            <div className="flex flex-col gap-1.5">
+                                {message.followUps.map((q, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => onExplainCode?.(q)}
+                                        className="group/followup text-left px-3 py-1.5 rounded-lg text-xs bg-surface-800/40 border border-surface-700/40 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200 flex items-center gap-2"
+                                    >
+                                        <span className="text-brand-400 group-hover/followup:translate-x-0.5 transition-transform">
+                                            →
+                                        </span>
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                 {/* Typing indicator */}
                 {message.isStreaming && !message.content && (
                     <div className="flex items-center gap-1 px-2 py-2">

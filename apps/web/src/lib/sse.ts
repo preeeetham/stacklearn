@@ -13,6 +13,7 @@ export async function streamChat(
         onToolCall: (tool: string, url?: string, reason?: string) => void;
         onToolResult: (tool: string) => void;
         onPlaygroundConfig: (config: SSEEvent["config"]) => void;
+        onFollowUps: (questions: string[]) => void;
         onDone: () => void;
         onError: (message: string) => void;
     }
@@ -90,6 +91,9 @@ export async function streamChat(
                             break;
                         case "playground_config":
                             callbacks.onPlaygroundConfig(event.config);
+                            break;
+                        case "follow_ups":
+                            if (event.questions) callbacks.onFollowUps(event.questions);
                             break;
                         case "done":
                             callbacks.onDone();
