@@ -1,6 +1,6 @@
 # StackLearn
 
-> 🚀 An AI-powered interactive learning platform that helps developers stay up to date with new tech stacks through conversational explanations and live, runnable playground demos.
+> An AI-powered interactive learning platform that helps developers stay up to date with new tech stacks through conversational explanations and live, runnable playground demos.
 
 ![StackLearn](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
 
