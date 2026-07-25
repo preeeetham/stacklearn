@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { usePlaygroundStore } from "../store/playgroundStore";
+import { useToastStore } from "../store/toastStore";
 import {
     bootWebContainer,
     mountProject,
@@ -7,31 +8,44 @@ import {
     writeFile,
     teardownWebContainer,
     onServerReady,
+    onPort,
+    writeToProcessInput,
 } from "../lib/webcontainers";
-import type { WebContainer } from "@webcontainer/api";
+import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
 export function usePlayground() {
     const {
         config,
         files,
         activeFile,
+        openTabs,
         isRunning,
         isInstalling,
         terminalOutput,
         previewUrl,
+        ports,
+        activePreviewPort,
         isBooted,
         setRunning,
         setInstalling,
         addTerminalOutput,
         clearTerminalOutput,
-        setPreviewUrl,
+        addPort,
+        removePort,
+        clearPorts,
+        setActivePreviewPort,
         setBooted,
         updateFile,
         setActiveFile,
+        addTab,
+        removeTab,
         reset,
     } = usePlaygroundStore();
 
+    const addToast = useToastStore((s) => s.addToast);
+
     const wcRef = useRef<WebContainer | null>(null);
+    const processRef = useRef<WebContainerProcess | null>(null);
 
     // Boot WebContainer on mount
     useEffect(() => {
@@ -42,9 +56,22 @@ export function usePlayground() {
                 const wc = await bootWebContainer();
                 if (!cancelled) {
                     wcRef.current = wc;
-                    // Register the server-ready listener once for the lifetime of
-                    // this container so preview URLs update on every run.
-                    onServerReady(wc, (_port, url) => setPreviewUrl(url));
+                    // Register listeners once for the lifetime of the container so
+                    // ports and preview URLs stay in sync across every run.
+                    //
+                    // `port` fires for each forwarded port opening/closing — this
+                    // is what powers the preview's port switcher. `server-ready`
+                    // fires when an HTTP server is actually listening, which is
+                    // the moment we surface the preview to the learner (their code
+                    // logs "localhost:3000", but only this sandbox URL is reachable).
+                    onPort(wc, (port, type, url) => {
+                        if (type === "open") addPort(port, url);
+                        else removePort(port);
+                    });
+                    onServerReady(wc, (port, url) => {
+                        addPort(port, url);
+                        addToast(`Server ready on port ${port} — open the Preview tab`, "success");
+                    });
                     setBooted(true);
                 }
             } catch (err) {
@@ -68,10 +95,19 @@ export function usePlayground() {
         async function init() {
             const wc = wcRef.current!;
             try {
+                // Kill any process still running from a previous config —
+                // otherwise its server keeps holding the port and the new run
+                // fails with EADDRINUSE (e.g. asking a follow-up question that
+                // spins up another server on the same port).
+                if (processRef.current) {
+                    processRef.current.kill();
+                    processRef.current = null;
+                }
+
                 clearTerminalOutput();
                 setInstalling(true);
                 setRunning(false);
-                setPreviewUrl(null);
+                clearPorts();
 
                 await mountProject(wc, config!);
 
@@ -80,9 +116,18 @@ export function usePlayground() {
                 setInstalling(false);
                 setRunning(true);
 
-                await runProject(wc, config!, (data) => {
+                const result = await runProject(wc, config!, (data) => {
                     if (!cancelled) addTerminalOutput(data);
                 });
+
+                // Always track the process so it can be killed later. If this
+                // run was superseded while starting, kill it now rather than
+                // orphaning it (an orphan would keep holding its port).
+                processRef.current = result.startProcess;
+                if (cancelled) {
+                    result.startProcess.kill();
+                    processRef.current = null;
+                }
             } catch (err) {
                 if (!cancelled) {
                     addTerminalOutput(
@@ -112,14 +157,39 @@ export function usePlayground() {
         [updateFile]
     );
 
+    // Write to the running process's stdin (terminal input)
+    const handleTerminalInput = useCallback((data: string) => {
+        if (processRef.current) {
+            writeToProcessInput(processRef.current, data).catch(() => {
+                // Process may have exited — ignore
+            });
+        }
+    }, []);
+
+    // Stop the running process
+    const handleStop = useCallback(() => {
+        if (processRef.current) {
+            processRef.current.kill();
+            processRef.current = null;
+        }
+        setRunning(false);
+        addTerminalOutput("\n⏹ Process stopped\n");
+    }, [setRunning, addTerminalOutput]);
+
     // Re-run the project
     const handleRun = useCallback(async () => {
         if (!config || !wcRef.current) return;
 
+        // Kill existing process first
+        if (processRef.current) {
+            processRef.current.kill();
+            processRef.current = null;
+        }
+
         clearTerminalOutput();
         setRunning(true);
         setInstalling(true);
-        setPreviewUrl(null);
+        clearPorts();
 
         try {
             // Re-mount current files
@@ -128,7 +198,8 @@ export function usePlayground() {
 
             setInstalling(false);
 
-            await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
+            const result = await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
+            processRef.current = result.startProcess;
         } catch (err) {
             addTerminalOutput(
                 `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
@@ -136,22 +207,30 @@ export function usePlayground() {
             setInstalling(false);
             setRunning(false);
         }
-    }, [config, clearTerminalOutput, setRunning, setInstalling, setPreviewUrl, addTerminalOutput]);
+    }, [config, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput]);
 
     // Reset to original config
     const handleReset = useCallback(async () => {
         if (!config || !wcRef.current) return;
+
+        // Kill existing process first
+        if (processRef.current) {
+            processRef.current.kill();
+            processRef.current = null;
+        }
+
         reset();
         clearTerminalOutput();
         setRunning(true);
         setInstalling(true);
-        setPreviewUrl(null);
+        clearPorts();
 
         try {
             await mountProject(wcRef.current, config);
             setInstalling(false);
 
-            await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
+            const result = await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
+            processRef.current = result.startProcess;
         } catch (err) {
             addTerminalOutput(
                 `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
@@ -159,20 +238,39 @@ export function usePlayground() {
             setInstalling(false);
             setRunning(false);
         }
-    }, [config, reset, clearTerminalOutput, setRunning, setInstalling, setPreviewUrl, addTerminalOutput]);
+    }, [config, reset, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput]);
+
+    // Save the active file to WebContainer (for Cmd+S shortcut)
+    const handleSave = useCallback(async () => {
+        if (!wcRef.current || !activeFile) return;
+        const currentFiles = usePlaygroundStore.getState().files;
+        const content = currentFiles[activeFile];
+        if (content !== undefined) {
+            await writeFile(wcRef.current, activeFile, content);
+        }
+    }, [activeFile]);
 
     return {
         config,
         files,
         activeFile,
+        openTabs,
         isRunning,
         isInstalling,
         terminalOutput,
         previewUrl,
+        ports,
+        activePreviewPort,
         isBooted,
         setActiveFile,
+        setActivePreviewPort,
+        addTab,
+        removeTab,
         handleFileChange,
         handleRun,
         handleReset,
+        handleStop,
+        handleSave,
+        handleTerminalInput,
     };
 }

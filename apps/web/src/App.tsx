@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Header } from "./components/Layout/Header";
 import { ChatPanel } from "./components/Chat/ChatPanel";
 import { PlaygroundPanel } from "./components/Playground/PlaygroundPanel";
+import { ToastContainer } from "./components/Layout/Toast";
 
 const WIDTH_STORAGE_KEY = "stacklearn-chat-width";
 const MIN_WIDTH_PCT = 25;
@@ -155,6 +156,9 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Toast notifications */}
+            <ToastContainer />
         </div>
     );
 };

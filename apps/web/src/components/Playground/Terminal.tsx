@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Terminal as XTerminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
@@ -6,6 +6,8 @@ import { useThemeStore } from "../../store/themeStore";
 
 interface TerminalProps {
     output: string[];
+    onInput?: (data: string) => void;
+    onClear?: () => void;
 }
 
 const DARK_TERMINAL_THEME = {
@@ -38,11 +40,15 @@ const LIGHT_TERMINAL_THEME = {
     white: "#18181c",
 };
 
-export const Terminal: React.FC<TerminalProps> = ({ output }) => {
+export const Terminal: React.FC<TerminalProps> = ({ output, onInput, onClear }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const termRef = useRef<XTerminal | null>(null);
     const fitRef = useRef<FitAddon | null>(null);
     const lastOutputLength = useRef(0);
+    // Gate writes until xterm's renderer has initialized its dimensions (one
+    // frame after open). Writing/fitting before then makes xterm schedule an
+    // internal refresh that reads undefined dimensions and throws.
+    const [isReady, setIsReady] = useState(false);
     const theme = useThemeStore((state) => state.theme);
 
     useEffect(() => {
@@ -53,7 +59,7 @@ export const Terminal: React.FC<TerminalProps> = ({ output }) => {
             fontSize: 13,
             fontFamily: "'JetBrains Mono', monospace",
             lineHeight: 1.4,
-            cursorBlink: false,
+            cursorBlink: !!onInput, // Blink when interactive
             convertEol: true,
             scrollback: 1000,
         });
@@ -61,19 +67,45 @@ export const Terminal: React.FC<TerminalProps> = ({ output }) => {
         const fit = new FitAddon();
         term.loadAddon(fit);
         term.open(containerRef.current);
-        fit.fit();
+
+        // Fitting while the container is hidden or zero-sized throws inside
+        // xterm ("cannot read properties of undefined (reading 'dimensions')").
+        // Guard every fit so panel toggles and early resizes stay silent.
+        const safeFit = () => {
+            const el = containerRef.current;
+            if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) return;
+            try {
+                fit.fit();
+            } catch {
+                // Renderer not ready yet — the ResizeObserver will retry.
+            }
+        };
 
         termRef.current = term;
         fitRef.current = fit;
 
-        const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(() => {
-                fit.fit();
+        // Forward keystrokes to the process stdin
+        if (onInput) {
+            term.onData((data) => {
+                onInput(data);
             });
+        }
+
+        // Defer the first fit to the next frame — by then xterm has initialized
+        // its renderer dimensions, so fitting/writing no longer races.
+        let rafId = 0;
+        rafId = requestAnimationFrame(() => {
+            safeFit();
+            setIsReady(true);
+        });
+
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(safeFit);
         });
         resizeObserver.observe(containerRef.current);
 
         return () => {
+            cancelAnimationFrame(rafId);
             resizeObserver.disconnect();
             term.dispose();
         };
@@ -82,14 +114,22 @@ export const Terminal: React.FC<TerminalProps> = ({ output }) => {
     // Write new output
     useEffect(() => {
         const term = termRef.current;
-        if (!term) return;
+        if (!term || !isReady) return;
 
-        // Write only new output since last render
-        for (let i = lastOutputLength.current; i < output.length; i++) {
-            term.write(output[i]);
+        // Write only new output since last render. Wrap each write in try/catch:
+        // writing while the terminal is momentarily detached (e.g. a panel
+        // switch) can throw inside xterm's scroll-area sync. Advance the cursor
+        // only past writes that succeed, so nothing is silently dropped.
+        let i = lastOutputLength.current;
+        try {
+            for (; i < output.length; i++) {
+                term.write(output[i]);
+            }
+        } catch {
+            // Leave the rest for the next render pass.
         }
-        lastOutputLength.current = output.length;
-    }, [output]);
+        lastOutputLength.current = i;
+    }, [output, isReady]);
 
     // Reset when output is cleared
     useEffect(() => {
@@ -106,11 +146,39 @@ export const Terminal: React.FC<TerminalProps> = ({ output }) => {
         }
     }, [theme]);
 
+    // Update onInput handler when it changes
+    useEffect(() => {
+        const term = termRef.current;
+        if (!term) return;
+        term.options.cursorBlink = !!onInput;
+    }, [onInput]);
+
     return (
-        <div
-            ref={containerRef}
-            className="h-full w-full bg-surface-900"
-            id="terminal-container"
-        />
+        <div className="h-full w-full flex flex-col" id="terminal-wrapper">
+            {/* Terminal header */}
+            <div className="flex items-center justify-between px-3 py-1.5 bg-surface-900/50 border-b border-surface-800/40 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-accent-400/60" />
+                    <span className="text-[10px] font-medium text-surface-500 uppercase tracking-wider">Terminal</span>
+                </div>
+                {onClear && (
+                    <button
+                        onClick={onClear}
+                        title="Clear terminal"
+                        className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-surface-500 hover:text-surface-300 hover:bg-surface-800/50 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3">
+                            <path fillRule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clipRule="evenodd" />
+                        </svg>
+                        Clear
+                    </button>
+                )}
+            </div>
+            {/* Terminal body */}
+            <div
+                ref={containerRef}
+                className="flex-1 bg-surface-900 min-h-0"
+            />
+        </div>
     );
 };

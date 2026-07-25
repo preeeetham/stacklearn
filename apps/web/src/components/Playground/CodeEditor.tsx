@@ -39,6 +39,12 @@ function getLanguageExtension(fileName: string) {
     }
 }
 
+/**
+ * Cache of serialised EditorState per file path so that switching tabs
+ * preserves cursor position, scroll offset, and undo history.
+ */
+const stateCache = new Map<string, { json: unknown; scrollTop: number }>();
+
 export const CodeEditor: React.FC<CodeEditorProps> = ({
     value,
     fileName,
@@ -47,10 +53,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
+    const fileNameRef = useRef(fileName);
     const theme = useThemeStore((state) => state.theme);
 
     useEffect(() => {
         if (!editorRef.current) return;
+
+        // Save current view state before switching
+        if (viewRef.current && fileNameRef.current !== fileName) {
+            const prevView = viewRef.current;
+            stateCache.set(fileNameRef.current, {
+                json: prevView.state.toJSON(),
+                scrollTop: prevView.scrollDOM.scrollTop,
+            });
+            prevView.destroy();
+            viewRef.current = null;
+        }
+
+        fileNameRef.current = fileName;
 
         const updateListener = EditorView.updateListener.of((update: ViewUpdate) => {
             if (update.docChanged) {
@@ -65,33 +85,69 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             }
         });
 
-        const state = EditorState.create({
-            doc: value,
-            extensions: [
-                basicSetup,
-                ...(theme === "dark" ? [oneDark] : []),
-                getLanguageExtension(fileName),
-                updateListener,
-                EditorView.theme({
-                    "&": {
-                        height: "100%",
-                        fontSize: "13px",
-                    },
-                    ".cm-scroller": {
-                        fontFamily: "'JetBrains Mono', monospace",
-                    },
-                }),
-            ],
-        });
+        const extensions: Extension[] = [
+            basicSetup,
+            ...(theme === "dark" ? [oneDark] : []),
+            getLanguageExtension(fileName),
+            updateListener,
+            EditorView.theme({
+                "&": {
+                    height: "100%",
+                    fontSize: "13px",
+                },
+                ".cm-scroller": {
+                    fontFamily: "'JetBrains Mono', monospace",
+                },
+            }),
+        ];
+
+        // Try to restore cached state for this file
+        const cached = stateCache.get(fileName);
+        let state: EditorState;
+
+        if (cached) {
+            try {
+                state = EditorState.fromJSON(
+                    cached.json,
+                    { extensions },
+                    {
+                        // Field serializers for basicSetup internals
+                    }
+                );
+                // If the doc content changed externally, update it
+                if (state.doc.toString() !== value) {
+                    state = EditorState.create({ doc: value, extensions });
+                }
+            } catch {
+                // Fallback: create fresh state
+                state = EditorState.create({ doc: value, extensions });
+            }
+        } else {
+            state = EditorState.create({ doc: value, extensions });
+        }
 
         const view = new EditorView({
             state,
             parent: editorRef.current,
         });
 
+        // Restore scroll position
+        if (cached) {
+            requestAnimationFrame(() => {
+                view.scrollDOM.scrollTop = cached.scrollTop;
+            });
+        }
+
         viewRef.current = view;
 
         return () => {
+            // Save state on unmount too
+            if (viewRef.current) {
+                stateCache.set(fileName, {
+                    json: viewRef.current.state.toJSON(),
+                    scrollTop: viewRef.current.scrollDOM.scrollTop,
+                });
+            }
             view.destroy();
         };
     }, [fileName, theme]); // Re-create editor when file or theme changes

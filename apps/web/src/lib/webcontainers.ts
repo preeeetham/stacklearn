@@ -1,4 +1,4 @@
-import { WebContainer } from "@webcontainer/api";
+import { WebContainer, type WebContainerProcess } from "@webcontainer/api";
 import type { PlaygroundConfig } from "../types";
 
 let instance: WebContainer | null = null;
@@ -73,13 +73,35 @@ export function onServerReady(
 }
 
 /**
+ * Register a listener for port open/close events. Unlike `server-ready`, this
+ * fires for every port the sandbox forwards (and again when they close), so we
+ * can keep an accurate list of live ports for the preview's port switcher.
+ * Call once after boot.
+ */
+export function onPort(
+    wc: WebContainer,
+    handler: (port: number, type: "open" | "close", url: string) => void
+): void {
+    wc.on("port", (port, type, url) => handler(port, type, url));
+}
+
+/**
+ * Result of running a project — includes both the install and start processes
+ * so the caller can read/write to stdin and kill the process.
+ */
+export interface RunProjectResult {
+    startProcess: WebContainerProcess;
+}
+
+/**
  * Run the project: install dependencies, then execute the start command.
+ * Returns the start process so the caller can write to its stdin or kill it.
  */
 export async function runProject(
     wc: WebContainer,
     config: PlaygroundConfig,
     onOutput: (data: string) => void
-): Promise<void> {
+): Promise<RunProjectResult> {
     // Install dependencies
     onOutput("$ " + config.installCommand + "\n");
     const installParts = config.installCommand.split(" ");
@@ -88,7 +110,7 @@ export async function runProject(
     const installExitCode = await installProcess.exit;
     if (installExitCode !== 0) {
         onOutput(`\n❌ Install failed with exit code ${installExitCode}\n`);
-        return;
+        throw new Error(`Install failed with exit code ${installExitCode}`);
     }
     onOutput("\n✅ Dependencies installed\n\n");
 
@@ -97,6 +119,20 @@ export async function runProject(
     const startParts = config.startCommand.split(" ");
     const startProcess = await wc.spawn(startParts[0], startParts.slice(1));
     startProcess.output.pipeTo(new WritableStream({ write: onOutput }));
+
+    return { startProcess };
+}
+
+/**
+ * Write data to a running process's stdin (e.g. user keystrokes from the terminal).
+ */
+export async function writeToProcessInput(
+    process: WebContainerProcess,
+    data: string
+): Promise<void> {
+    const writer = process.input.getWriter();
+    await writer.write(data);
+    writer.releaseLock();
 }
 
 /**
