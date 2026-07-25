@@ -36,12 +36,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading }) => {
     };
 
     return (
-        <div className="p-4 border-t border-surface-800/50" id="chat-input-container">
+        <div className="p-4 border-t border-surface-800/40" id="chat-input-container">
             <div className="relative group">
                 {/* Glow border effect */}
-                <div className="absolute -inset-[1px] bg-gradient-to-r from-brand-500/30 via-glow-cyan/20 to-brand-500/30 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-[1px]" />
+                <div className="absolute -inset-[1px] bg-gradient-to-r from-flame-orange/40 via-flame-rose/30 to-flame-violet/40 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 blur-[1px]" />
 
-                <div className="relative flex items-end gap-2 bg-surface-900 border border-surface-700/50 rounded-xl p-3 group-focus-within:border-brand-500/40 transition-colors duration-200">
+                <div className="relative flex items-center gap-2 bg-surface-900/80 border border-surface-700/50 rounded-2xl p-3 group-focus-within:border-brand-500/40 transition-colors duration-200">
                     <textarea
                         ref={textareaRef}
                         value={value}
@@ -57,11 +57,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading }) => {
                         onClick={handleSubmit}
                         disabled={!value.trim() || isLoading}
                         id="chat-send-button"
-                        className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-brand-600 hover:bg-brand-500 disabled:bg-surface-700 disabled:text-surface-500 text-white transition-all duration-200 hover:shadow-lg hover:shadow-brand-500/25 disabled:shadow-none"
+                        className="hover-lift flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-br from-flame-orange via-flame-rose to-flame-violet disabled:from-surface-700 disabled:via-surface-700 disabled:to-surface-700 disabled:text-surface-500 text-white transition-all duration-200 shadow-flame disabled:shadow-none"
                     >
                         {isLoading ? (
                             <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                <circle className="opacity-25" cx="12" cy="12" r="1" stroke="currentColor" strokeWidth="3" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
                         ) : (

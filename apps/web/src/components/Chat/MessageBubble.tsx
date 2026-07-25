@@ -26,7 +26,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
         >
             <div
                 className={`max-w-[85%] ${isUser
-                        ? "bg-brand-600/20 border border-brand-500/20 rounded-2xl rounded-br-md"
+                        ? "bg-gradient-to-br from-brand-500/20 to-flame-violet/10 border border-brand-500/25 rounded-2xl rounded-br-md"
                         : "bg-transparent"
                     } ${isUser ? "px-4 py-3" : "px-1 py-1"}`}
             >
@@ -119,7 +119,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                                     <button
                                         key={idx}
                                         onClick={() => onExplainCode?.(q)}
-                                        className="group/followup text-left px-3 py-1.5 rounded-lg text-xs bg-surface-800/40 border border-surface-700/40 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200 flex items-center gap-2"
+                                        className="hover-lift group/followup text-left px-3 py-1.5 rounded-xl text-xs bg-surface-800/40 border border-surface-700/40 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200 flex items-center gap-2"
                                     >
                                         <span className="text-brand-400 group-hover/followup:translate-x-0.5 transition-transform">
                                             →

@@ -26,7 +26,7 @@ export const ModelSelector: React.FC = () => {
         <div className="relative" ref={dropdownRef} id="model-selector">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700/50 hover:bg-surface-800 hover:border-surface-600 text-xs text-surface-300 hover:text-surface-100 transition-all duration-200"
+                className="hover-lift flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-800/50 border border-surface-700/50 hover:border-brand-500/40 text-xs text-surface-300 hover:text-surface-100 transition-all duration-200"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-brand-400">
                     <path d="M4.632 3.533A2 2 0 016.577 2h6.846a2 2 0 011.945 1.533l1.976 8.234A3.489 3.489 0 0016 11.5H4c-.476 0-.93.095-1.344.267l1.976-8.234z" />
@@ -39,7 +39,7 @@ export const ModelSelector: React.FC = () => {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-1 w-72 rounded-lg bg-surface-900 border border-surface-700/50 shadow-2xl shadow-black/50 z-50 overflow-hidden animate-slide-up">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 rounded-2xl bar-float shadow-float-lg z-50 overflow-hidden animate-slide-up">
                     <div className="p-2 border-b border-surface-800/50">
                         <p className="text-[10px] font-bold text-surface-500 uppercase tracking-wider px-2 py-1">
                             Select Model
@@ -53,7 +53,7 @@ export const ModelSelector: React.FC = () => {
                                     setModel(model.id);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full text-left px-3 py-2.5 rounded-md text-xs transition-colors ${selectedModel === model.id
+                                className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-colors ${selectedModel === model.id
                                         ? "bg-brand-500/15 text-brand-300"
                                         : "text-surface-300 hover:bg-surface-800/50 hover:text-surface-100"
                                     }`}

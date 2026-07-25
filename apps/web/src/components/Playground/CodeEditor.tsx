@@ -8,6 +8,7 @@ import { html } from "@codemirror/lang-html";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
 import type { ViewUpdate } from "@codemirror/view";
+import { useThemeStore } from "../../store/themeStore";
 
 interface CodeEditorProps {
     value: string;
@@ -46,6 +47,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
+    const theme = useThemeStore((state) => state.theme);
 
     useEffect(() => {
         if (!editorRef.current) return;
@@ -67,7 +69,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             doc: value,
             extensions: [
                 basicSetup,
-                oneDark,
+                ...(theme === "dark" ? [oneDark] : []),
                 getLanguageExtension(fileName),
                 updateListener,
                 EditorView.theme({
@@ -92,7 +94,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         return () => {
             view.destroy();
         };
-    }, [fileName]); // Re-create editor when file changes
+    }, [fileName, theme]); // Re-create editor when file or theme changes
 
     // Update content when value changes externally
     useEffect(() => {

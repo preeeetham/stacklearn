@@ -28,13 +28,13 @@ export const PlaygroundPanel: React.FC = () => {
     // Empty state
     if (!config) {
         return (
-            <div className="flex items-center justify-center h-full bg-surface-950" id="playground-panel-empty">
+            <div className="flex items-center justify-center h-full bg-transparent" id="playground-panel-empty">
                 <div className="text-center max-w-sm animate-fade-in">
                     <div className="relative mb-4">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-20 h-20 rounded-full bg-glow-cyan/5 animate-pulse-slow" />
+                            <div className="w-20 h-20 rounded-full bg-flame-violet/10 animate-pulse-slow" />
                         </div>
-                        <div className="relative text-4xl">⚡</div>
+                        <div className="relative text-4xl animate-float">⚡</div>
                     </div>
                     <h3 className="text-base font-semibold text-surface-300 mb-2">
                         Playground
@@ -56,7 +56,7 @@ export const PlaygroundPanel: React.FC = () => {
     const activeFileContent = files[activeFile] || "";
 
     return (
-        <div className="flex flex-col h-full bg-surface-950" id="playground-panel">
+        <div className="flex flex-col h-full bg-transparent" id="playground-panel">
             {/* Toolbar */}
             <PlaygroundToolbar
                 files={files}
@@ -69,7 +69,7 @@ export const PlaygroundPanel: React.FC = () => {
             {/* Main content */}
             <div className="flex-1 flex overflow-hidden">
                 {/* File tree sidebar */}
-                <div className="w-44 flex-shrink-0 border-r border-surface-800/50 bg-surface-900/50 overflow-hidden">
+                <div className="w-44 flex-shrink-0 border-r border-surface-800/40 bg-surface-900/30 overflow-hidden">
                     <div className="px-3 py-2 text-[10px] font-bold text-surface-500 uppercase tracking-wider">
                         Files
                     </div>
@@ -85,9 +85,9 @@ export const PlaygroundPanel: React.FC = () => {
                     {/* Editor */}
                     <div className="flex-1 overflow-hidden min-h-0">
                         {/* File tab */}
-                        <div className="flex items-center px-3 py-1.5 bg-surface-900/80 border-b border-surface-800/50">
-                            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-800/50 text-xs">
-                                <span className="text-brand-400 font-mono">{activeFile}</span>
+                        <div className="flex items-center px-3 py-1.5 bg-surface-900/50 border-b border-surface-800/40">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-800/60 border border-surface-700/40 text-xs">
+                                <span className="text-brand-300 font-mono">{activeFile}</span>
                             </div>
                         </div>
                         <div className="h-[calc(100%-32px)]">
@@ -100,13 +100,13 @@ export const PlaygroundPanel: React.FC = () => {
                     </div>
 
                     {/* Bottom panel tabs */}
-                    <div className="border-t border-surface-800/50">
-                        <div className="flex items-center gap-1 px-2 py-1 bg-surface-900/80 border-b border-surface-800/50">
+                    <div className="border-t border-surface-800/40">
+                        <div className="flex items-center gap-1 px-2 py-1.5 bg-surface-900/50 border-b border-surface-800/40">
                             <button
                                 onClick={() => setBottomPanel("terminal")}
-                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${bottomPanel === "terminal"
-                                        ? "bg-surface-800 text-surface-200"
-                                        : "text-surface-500 hover:text-surface-300"
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${bottomPanel === "terminal"
+                                        ? "bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet text-white shadow-flame"
+                                        : "text-surface-500 hover:text-surface-300 hover:bg-surface-800/50"
                                     }`}
                             >
                                 Terminal
@@ -114,9 +114,9 @@ export const PlaygroundPanel: React.FC = () => {
                             {previewUrl && (
                                 <button
                                     onClick={() => setBottomPanel("preview")}
-                                    className={`px-3 py-1 rounded text-xs font-medium transition-colors ${bottomPanel === "preview"
-                                            ? "bg-surface-800 text-surface-200"
-                                            : "text-surface-500 hover:text-surface-300"
+                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${bottomPanel === "preview"
+                                            ? "bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet text-white shadow-flame"
+                                            : "text-surface-500 hover:text-surface-300 hover:bg-surface-800/50"
                                         }`}
                                 >
                                     Preview

@@ -25,9 +25,13 @@ export const MessageList: React.FC<MessageListProps> = ({
                     {/* Logo / Hero */}
                     <div className="relative mb-6">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-24 h-24 rounded-full bg-brand-500/10 animate-pulse-slow" />
+                            <div className="w-24 h-24 rounded-full bg-flame-violet/10 animate-pulse-slow" />
                         </div>
-                        <div className="relative text-5xl">🚀</div>
+                        <img
+                            src="/logo.png"
+                            alt="StackLearn"
+                            className="relative w-14 h-14 mx-auto object-contain animate-float drop-shadow-[0_8px_20px_rgba(122,44,253,0.35)]"
+                        />
                     </div>
                     <h2 className="text-xl font-bold text-surface-100 mb-2">
                         Welcome to StackLearn
@@ -48,7 +52,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                             <button
                                 key={suggestion}
                                 onClick={() => onExplainCode?.(suggestion)}
-                                className="px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/50 border border-surface-700/50 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200"
+                                className="hover-lift px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/50 border border-surface-700/50 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200"
                             >
                                 {suggestion}
                             </button>
