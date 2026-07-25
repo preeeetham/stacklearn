@@ -3,6 +3,105 @@
 @tailwind utilities;
 
 /* ============================================ */
+/* Theme Variables — dark (default) & light      */
+/* ============================================ */
+
+:root,
+.dark {
+  --color-surface-50: 247 247 248;
+  --color-surface-100: 238 238 239;
+  --color-surface-200: 220 220 224;
+  --color-surface-300: 194 194 201;
+  --color-surface-400: 143 143 154;
+  --color-surface-500: 107 107 118;
+  --color-surface-600: 77 77 88;
+  --color-surface-700: 53 53 61;
+  --color-surface-800: 33 33 38;
+  --color-surface-850: 24 24 28;
+  --color-surface-900: 18 18 21;
+  --color-surface-950: 10 10 12;
+
+  --color-brand-50: 245 240 255;
+  --color-brand-100: 236 225 255;
+  --color-brand-200: 217 194 255;
+  --color-brand-300: 188 147 255;
+  --color-brand-400: 157 101 253;
+  --color-brand-500: 122 44 253;
+  --color-brand-600: 104 23 224;
+  --color-brand-700: 85 16 184;
+
+  --color-accent-50: 240 253 244;
+  --color-accent-100: 220 252 231;
+  --color-accent-200: 187 247 208;
+  --color-accent-300: 134 239 172;
+  --color-accent-400: 74 222 128;
+  --color-accent-500: 34 197 94;
+  --color-accent-600: 22 163 74;
+  --color-accent-700: 21 128 61;
+
+  --color-flame-orange: 251 91 31;
+  --color-flame-rose: 225 66 127;
+  --color-flame-violet: 122 44 253;
+
+  --color-glow-cyan: 6 182 212;
+  --color-glow-purple: 168 85 247;
+  --color-glow-pink: 236 72 153;
+
+  --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-float-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.55), 0 4px 16px -4px rgba(0, 0, 0, 0.35);
+  --shadow-flame: 0 8px 24px -6px rgba(122, 44, 253, 0.45);
+
+  color-scheme: dark;
+}
+
+.light {
+  --color-surface-50: 15 15 18;
+  --color-surface-100: 24 24 28;
+  --color-surface-200: 45 45 51;
+  --color-surface-300: 71 71 79;
+  --color-surface-400: 107 107 118;
+  --color-surface-500: 138 138 148;
+  --color-surface-600: 172 172 181;
+  --color-surface-700: 206 206 213;
+  --color-surface-800: 228 228 233;
+  --color-surface-850: 238 238 241;
+  --color-surface-900: 255 255 255;
+  --color-surface-950: 244 244 247;
+
+  --color-brand-50: 245 240 255;
+  --color-brand-100: 236 225 255;
+  --color-brand-200: 217 194 255;
+  --color-brand-300: 104 23 224;
+  --color-brand-400: 85 16 184;
+  --color-brand-500: 122 44 253;
+  --color-brand-600: 104 23 224;
+  --color-brand-700: 85 16 184;
+
+  --color-accent-50: 240 253 244;
+  --color-accent-100: 220 252 231;
+  --color-accent-200: 187 247 208;
+  --color-accent-300: 21 128 61;
+  --color-accent-400: 22 163 74;
+  --color-accent-500: 34 197 94;
+  --color-accent-600: 22 163 74;
+  --color-accent-700: 21 128 61;
+
+  --color-flame-orange: 251 91 31;
+  --color-flame-rose: 225 66 127;
+  --color-flame-violet: 122 44 253;
+
+  --color-glow-cyan: 8 145 178;
+  --color-glow-purple: 147 51 234;
+  --color-glow-pink: 219 39 119;
+
+  --shadow-float: 0 12px 32px -8px rgba(15, 15, 20, 0.10), 0 2px 8px -2px rgba(15, 15, 20, 0.06);
+  --shadow-float-lg: 0 24px 60px -12px rgba(15, 15, 20, 0.14), 0 4px 16px -4px rgba(15, 15, 20, 0.08);
+  --shadow-flame: 0 8px 24px -6px rgba(122, 44, 253, 0.3);
+
+  color-scheme: light;
+}
+
+/* ============================================ */
 /* Global Reset & Base Styles                   */
 /* ============================================ */
 
@@ -22,10 +121,11 @@ body,
 
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background-color: #0f172a;
-  color: #e2e8f0;
+  background-color: rgb(var(--color-surface-950));
+  color: rgb(var(--color-surface-100));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ============================================ */
@@ -42,12 +142,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgb(var(--color-surface-700));
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: rgb(var(--color-surface-600));
 }
 
 /* ============================================ */
@@ -63,7 +163,7 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 1.5rem 0 0.75rem;
-  color: #f1f5f9;
+  color: rgb(var(--color-surface-100));
   letter-spacing: -0.02em;
 }
 
@@ -71,7 +171,7 @@ body {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
-  color: #f1f5f9;
+  color: rgb(var(--color-surface-100));
   letter-spacing: -0.01em;
 }
 
@@ -79,12 +179,12 @@ body {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 1rem 0 0.5rem;
-  color: #e2e8f0;
+  color: rgb(var(--color-surface-100));
 }
 
 .markdown-content p {
   margin: 0.5rem 0;
-  color: #cbd5e1;
+  color: rgb(var(--color-surface-300));
 }
 
 .markdown-content ul,
@@ -95,7 +195,7 @@ body {
 
 .markdown-content li {
   margin: 0.25rem 0;
-  color: #cbd5e1;
+  color: rgb(var(--color-surface-300));
 }
 
 .markdown-content code {
@@ -103,17 +203,17 @@ body {
   font-size: 0.85em;
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  background: #1e293b;
-  color: #a5b4fc;
-  border: 1px solid #334155;
+  background: rgb(var(--color-surface-800));
+  color: rgb(var(--color-brand-300));
+  border: 1px solid rgb(var(--color-surface-700));
 }
 
 .markdown-content pre {
   margin: 0.75rem 0;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow-x: auto;
-  background: #0c1222 !important;
-  border: 1px solid #1e293b;
+  background: rgb(var(--color-surface-850)) !important;
+  border: 1px solid rgb(var(--color-surface-800));
 }
 
 .markdown-content pre code {
@@ -123,30 +223,30 @@ body {
   line-height: 1.6;
   background: transparent !important;
   border: none;
-  color: #e2e8f0;
+  color: rgb(var(--color-surface-200));
 }
 
 .markdown-content a {
-  color: #818cf8;
+  color: rgb(var(--color-brand-400));
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: border-color 0.2s ease;
 }
 
 .markdown-content a:hover {
-  border-bottom-color: #818cf8;
+  border-bottom-color: rgb(var(--color-brand-400));
 }
 
 .markdown-content blockquote {
-  border-left: 3px solid #6366f1;
+  border-left: 3px solid rgb(var(--color-brand-500));
   padding: 0.5rem 1rem;
   margin: 0.75rem 0;
-  background: rgba(99, 102, 241, 0.08);
+  background: rgb(var(--color-brand-500) / 0.08);
   border-radius: 0 6px 6px 0;
 }
 
 .markdown-content strong {
-  color: #f1f5f9;
+  color: rgb(var(--color-surface-100));
   font-weight: 600;
 }
 
@@ -167,7 +267,7 @@ body {
 }
 
 .xterm-viewport::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: rgb(var(--color-surface-700));
   border-radius: 3px;
 }
 
@@ -182,16 +282,16 @@ body {
 }
 
 .cm-editor .cm-gutters {
-  background: #0c1222;
-  border-right: 1px solid #1e293b;
+  background: rgb(var(--color-surface-850));
+  border-right: 1px solid rgb(var(--color-surface-800));
 }
 
 .cm-editor .cm-activeLineGutter {
-  background: #172033;
+  background: rgb(var(--color-surface-800));
 }
 
 .cm-editor .cm-activeLine {
-  background: rgba(99, 102, 241, 0.06);
+  background: rgb(var(--color-brand-500) / 0.06);
 }
 
 /* ============================================ */
@@ -231,15 +331,50 @@ body {
 /* ============================================ */
 
 .glass {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgb(var(--color-surface-950) / 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  border: 1px solid rgb(var(--color-surface-700) / 0.5);
 }
 
 .glass-light {
-  background: rgba(30, 41, 59, 0.4);
+  background: rgb(var(--color-surface-800) / 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(51, 65, 85, 0.3);
+  border: 1px solid rgb(var(--color-surface-700) / 0.4);
+}
+
+/* ============================================ */
+/* Hovering Bars — floating bar & lift utilities */
+/* ============================================ */
+
+/* A detached, elevated "bar" — the base building block of the UI */
+.bar-float {
+  background: rgb(var(--color-surface-900) / 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgb(var(--color-surface-700) / 0.6);
+  box-shadow: var(--shadow-float);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Lifts an element on hover — the literal "hovering" interaction */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float-lg);
+}
+
+.hover-lift:active {
+  transform: translateY(0);
+}
+
+.text-flame {
+  background: linear-gradient(90deg, #fb5b1f 0%, #e1427f 50%, #7a2cfd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
