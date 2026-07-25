@@ -22,7 +22,13 @@ const PLAYGROUND_START = "<playground_config>";
 const PLAYGROUND_END = "</playground_config>";
 const FOLLOWUPS_START = "<follow_ups>";
 const FOLLOWUPS_END = "</follow_ups>";
-const CONTROL_TAGS = [PLAYGROUND_START, FOLLOWUPS_START];
+// Files are emitted as raw <file path="...">…</file> blocks (not JSON-escaped
+// inside the config), so the model writes code as plain text instead of
+// escaping a whole file into a JSON string — the escaping is where it used to
+// drop closing quotes/brackets and produce code that wouldn't compile.
+const FILE_START = "<file";
+const FILE_BLOCK_RE = /<file\s+path=["']([^"']+)["']\s*>\n?([\s\S]*?)<\/file>/g;
+const CONTROL_TAGS = [PLAYGROUND_START, FOLLOWUPS_START, FILE_START];
 
 /**
  * Extract the JSON payload between a start/end tag pair, or null if absent.
@@ -36,15 +42,49 @@ function extractBlock(text: string, startTag: string, endTag: string): string | 
 
 /**
  * Parse playground config from the assistant's response text.
+ *
+ * The <playground_config> block carries JSON metadata only (runtime, entry,
+ * commands, port). File contents live in separate raw <file path="…">…</file>
+ * blocks so the model never has to escape code into a JSON string.
  */
 function parsePlaygroundConfig(text: string): PlaygroundConfig | null {
-    const jsonStr = extractBlock(text, PLAYGROUND_START, PLAYGROUND_END);
-    if (!jsonStr) return null;
+    const metaStr = extractBlock(text, PLAYGROUND_START, PLAYGROUND_END);
+    if (!metaStr) return null;
+
+    let meta: Partial<PlaygroundConfig>;
     try {
-        return normalizePlaygroundConfig(JSON.parse(jsonStr) as PlaygroundConfig);
+        meta = JSON.parse(metaStr) as Partial<PlaygroundConfig>;
     } catch {
         return null;
     }
+
+    // Collect the raw file blocks. Trailing whitespace before </file> is
+    // trimmed; the first newline right after the opening tag is dropped by the
+    // regex so file contents start on their own line cleanly.
+    const files: Record<string, string> = {};
+    FILE_BLOCK_RE.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = FILE_BLOCK_RE.exec(text)) !== null) {
+        const path = match[1].trim();
+        const contents = match[2].replace(/\s+$/, "");
+        if (path) files[path] = contents;
+    }
+
+    if (Object.keys(files).length === 0) return null;
+
+    const firstFile = Object.keys(files)[0];
+    const entry = meta.entry || firstFile;
+
+    const config: PlaygroundConfig = {
+        runtime: "node",
+        entry,
+        files,
+        installCommand: meta.installCommand || "npm install",
+        startCommand: meta.startCommand || `npx tsx ${entry}`,
+        previewPort: meta.previewPort ?? null,
+    };
+
+    return normalizePlaygroundConfig(config);
 }
 
 /**

@@ -34,10 +34,11 @@ export async function createChatCompletion(
         model,
         messages,
         stream: true,
-        // Low temperature keeps the generated playground code syntactically
-        // reliable — at higher values the model intermittently drops closing
-        // quotes/brackets, which then fails to compile in the sandbox.
-        temperature: 0.2,
+        // Moderate temperature. Code reliability is handled structurally by
+        // emitting files as raw <file> blocks (see prompts.ts) rather than by
+        // starving the sampler — very low temperatures made the model lock onto
+        // a single, sometimes-broken completion for a given prompt.
+        temperature: 0.4,
         // Kept moderate so a full agent turn (initial call + a follow-up after a
         // browse_url tool result) fits within Groq's free-tier tokens-per-minute
         // budget. Still ample for an explanation plus a compact playground config.
@@ -203,7 +204,7 @@ export async function createChatCompletionNonStreaming(
         model,
         messages,
         stream: false,
-        temperature: 0.2,
+        temperature: 0.4,
         max_tokens: 4096,
     };
     if (useTools) {
