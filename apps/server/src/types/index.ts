@@ -41,6 +41,11 @@ export interface SSEPlaygroundConfigEvent {
     config: PlaygroundConfig;
 }
 
+export interface SSEFollowUpsEvent {
+    type: "follow_ups";
+    questions: string[];
+}
+
 export interface SSEDoneEvent {
     type: "done";
 }
@@ -55,6 +60,7 @@ export type SSEEvent =
     | SSEToolCallEvent
     | SSEToolResultEvent
     | SSEPlaygroundConfigEvent
+    | SSEFollowUpsEvent
     | SSEDoneEvent
     | SSEErrorEvent;
 
@@ -64,14 +70,14 @@ export interface ModelInfo {
     description: string;
 }
 
-export interface OpenRouterMessage {
+export interface LLMMessage {
     role: "system" | "user" | "assistant" | "tool";
     content: string;
     tool_call_id?: string;
-    tool_calls?: OpenRouterToolCall[];
+    tool_calls?: LLMToolCall[];
 }
 
-export interface OpenRouterToolCall {
+export interface LLMToolCall {
     id: string;
     type: "function";
     function: {
@@ -80,18 +86,30 @@ export interface OpenRouterToolCall {
     };
 }
 
-export interface OpenRouterChoice {
+// Streaming tool-call deltas carry a per-call `index` so interleaved
+// argument chunks from parallel tool calls can be reassembled correctly.
+export interface LLMToolCallDelta {
+    index: number;
+    id?: string;
+    type?: "function";
+    function?: {
+        name?: string;
+        arguments?: string;
+    };
+}
+
+export interface LLMChoice {
     delta?: {
         content?: string | null;
-        tool_calls?: OpenRouterToolCall[];
+        tool_calls?: LLMToolCallDelta[];
         role?: string;
     };
     finish_reason?: string | null;
 }
 
-export interface OpenRouterStreamChunk {
+export interface LLMStreamChunk {
     id: string;
-    choices: OpenRouterChoice[];
+    choices: LLMChoice[];
 }
 
 export interface BrowseUrlArgs {

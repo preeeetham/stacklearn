@@ -30,7 +30,7 @@ StackLearn is an open-source, locally-runnable web app with two panels:
 │   POST /api/chat  ──► Agent Orchestrator                    │
 │                              │                              │
 │                    ┌─────────▼──────────┐                   │
-│                    │  OpenRouter API    │                   │
+│                    │     Groq API       │                   │
 │                    │  (LLM + tools)     │                   │
 │                    └─────────┬──────────┘                   │
 │                              │                              │
@@ -46,7 +46,7 @@ StackLearn is an open-source, locally-runnable web app with two panels:
 ### Prerequisites
 
 - [Bun](https://bun.sh) installed (`curl -fsSL https://bun.sh/install | bash`)
-- An [OpenRouter](https://openrouter.ai/) API key
+- A [Groq](https://console.groq.com) API key (starts with `gsk_...`)
 
 ### 1. Install dependencies
 
@@ -60,10 +60,10 @@ bun install
 cp .env.example apps/server/.env
 ```
 
-Edit `apps/server/.env` and add your `OPENROUTER_API_KEY`:
+Edit `apps/server/.env` and add your `GROQ_API_KEY`:
 
 ```env
-OPENROUTER_API_KEY=sk-or-your-key-here
+GROQ_API_KEY=gsk_your-key-here
 ```
 
 ### 3. Start development servers
@@ -86,7 +86,7 @@ This starts both servers:
 | Frontend | React 18 + Vite |
 | Styling | Tailwind CSS v3 |
 | Playground | StackBlitz WebContainers |
-| AI | OpenRouter API |
+| AI | Groq API |
 | State Management | Zustand |
 | Code Editor | CodeMirror 6 |
 | Terminal | xterm.js |
@@ -100,7 +100,7 @@ stacklearn/
 │   │   └── src/
 │   │       ├── agent/   # AI orchestrator, prompts, tools
 │   │       ├── routes/  # API routes (chat, models, health)
-│   │       ├── lib/     # OpenRouter client, SSE helpers
+│   │       ├── lib/     # Groq client, SSE helpers
 │   │       └── types/   # TypeScript types
 │   └── web/             # React frontend
 │       └── src/
@@ -124,9 +124,9 @@ stacklearn/
 
 | Variable | Required | Description |
 |---|---|---|
-| `OPENROUTER_API_KEY` | ✅ | Your OpenRouter API key |
+| `GROQ_API_KEY` | ✅ | Your Groq API key (`gsk_...`) |
 | `FIRECRAWL_API_KEY` | ❌ | Firecrawl for better doc scraping |
-| `DEFAULT_MODEL` | ❌ | Default LLM model (default: `anthropic/claude-3.5-sonnet`) |
+| `DEFAULT_MODEL` | ❌ | Default LLM model (default: `llama-3.3-70b-versatile`) |
 | `PORT` | ❌ | Server port (default: `3001`) |
 | `CLIENT_URL` | ❌ | Frontend URL for CORS (default: `http://localhost:5173`) |
 

@@ -30,11 +30,15 @@ Edit `apps/server/src/routes/models.ts` and add entries to the `RECOMMENDED_MODE
 
 ```typescript
 {
-  id: "provider/model-name",
+  id: "llama-3.3-70b-versatile",
   name: "Display Name",
   description: "Short description of the model's strengths",
 }
 ```
+
+Use a valid Groq model ID (see `https://api.groq.com/openai/v1/models` or
+`https://console.groq.com/docs/models`). Prefer models that support tool /
+function calling, since the agent relies on the `browse_url` tool.
 
 ## How to Add Playground Templates
 

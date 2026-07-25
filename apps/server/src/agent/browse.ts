@@ -103,7 +103,7 @@ async function fetchWithFirecrawl(url: string, apiKey: string): Promise<string> 
         throw new Error("Firecrawl returned no content");
     }
 
-    return truncateToTokens(data.data.markdown, 8000);
+    return truncateToTokens(data.data.markdown, 5000);
 }
 
 async function fetchRaw(url: string): Promise<string> {
@@ -124,10 +124,10 @@ async function fetchRaw(url: string): Promise<string> {
 
     if (contentType.includes("application/json")) {
         const json = await response.json();
-        return truncateToTokens(JSON.stringify(json, null, 2), 8000);
+        return truncateToTokens(JSON.stringify(json, null, 2), 5000);
     }
 
     const html = await response.text();
     const text = stripHtml(html);
-    return truncateToTokens(text, 8000);
+    return truncateToTokens(text, 5000);
 }
