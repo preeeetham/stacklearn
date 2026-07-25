@@ -5,6 +5,7 @@ bun.lockb
 # Build output
 dist/
 .vite/
+.vercel/
 
 # Environment files
 .env
@@ -29,3 +30,4 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+.vercel
