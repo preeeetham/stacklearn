@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <ThemeToggle />
                     <a
-                        href="https://github.com/stacklearn"
+                        href="https://github.com/preeeetham/stacklearn"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-surface-400 hover:text-surface-100 transition-colors bg-surface-800/50 border border-surface-700/50 hover:border-surface-600"
