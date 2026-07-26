@@ -13,7 +13,6 @@ interface PlaygroundToolbarProps {
     onSelectPort: (port: number) => void;
     onRun: () => void;
     onStop: () => void;
-    onReset: () => void;
 }
 
 export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
@@ -26,7 +25,6 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
     onSelectPort,
     onRun,
     onStop,
-    onReset,
 }) => {
     const addToast = useToastStore((s) => s.addToast);
 
@@ -96,19 +94,6 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                         )}
                     </button>
                 )}
-
-                {/* Reset button */}
-                <button
-                    onClick={onReset}
-                    id="reset-button"
-                    title="Reset (⌘ Shift R)"
-                    className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/70 hover:bg-surface-700 text-surface-300 hover:text-surface-100 transition-colors border border-surface-700/50"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                        <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H4.598a.75.75 0 00-.75.75v3.634a.75.75 0 001.5 0v-2.033l.312.311a7 7 0 0011.712-3.138.75.75 0 00-1.449-.389zm-7.624-6.36a7 7 0 0111.712 3.138.75.75 0 01-1.449.389 5.5 5.5 0 00-9.201-2.466l-.312.311h2.433a.75.75 0 010 1.5H7.237a.75.75 0 01-.75-.75V3.552a.75.75 0 011.5 0v2.033l.312-.311z" clipRule="evenodd" />
-                    </svg>
-                    Reset
-                </button>
             </div>
 
             {/* Live port / preview switcher — appears when the running program
@@ -132,17 +117,12 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                                         ? `Hide preview (back to code)`
                                         : `Open preview for port ${port} — localhost:${port} maps here`
                                 }
-                                className={`hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                                className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 ${
                                     active
-                                        ? "bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet text-white shadow-flame"
-                                        : "bg-surface-800/70 hover:bg-surface-700 text-surface-300 hover:text-surface-100 border border-surface-700/50"
+                                        ? "bg-surface-800/60 border border-surface-700/40 text-brand-300"
+                                        : "text-surface-500 hover:text-surface-300 hover:bg-surface-800/30 border border-transparent"
                                 }`}
                             >
-                                <span
-                                    className={`w-1.5 h-1.5 rounded-full ${
-                                        active ? "bg-white/90" : "bg-accent-400 animate-pulse"
-                                    }`}
-                                />
                                 <span className="font-mono">:{port}</span>
                             </button>
                         );

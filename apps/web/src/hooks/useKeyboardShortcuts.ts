@@ -4,7 +4,6 @@ interface KeyboardShortcutHandlers {
     onRun: () => void;
     onStop: () => void;
     onSave: () => void;
-    onReset: () => void;
     onToggleTerminal: () => void;
     onCloseTab: () => void;
     isRunning: boolean;
@@ -14,7 +13,6 @@ interface KeyboardShortcutHandlers {
  * Registers global keyboard shortcuts for the playground:
  * - Cmd/Ctrl + Enter  → Run (or Stop if running)
  * - Cmd/Ctrl + S      → Save file to WebContainer
- * - Cmd/Ctrl + Shift + R → Reset playground
  * - Cmd/Ctrl + `      → Toggle terminal focus
  * - Cmd/Ctrl + W      → Close active tab
  */
@@ -22,7 +20,6 @@ export function useKeyboardShortcuts({
     onRun,
     onStop,
     onSave,
-    onReset,
     onToggleTerminal,
     onCloseTab,
     isRunning,
@@ -47,14 +44,6 @@ export function useKeyboardShortcuts({
                     onSave();
                     break;
 
-                case "R":
-                    // Cmd+Shift+R
-                    if (e.shiftKey) {
-                        e.preventDefault();
-                        onReset();
-                    }
-                    break;
-
                 case "`":
                     e.preventDefault();
                     onToggleTerminal();
@@ -69,5 +58,5 @@ export function useKeyboardShortcuts({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [onRun, onStop, onSave, onReset, onToggleTerminal, onCloseTab, isRunning]);
+    }, [onRun, onStop, onSave, onToggleTerminal, onCloseTab, isRunning]);
 }

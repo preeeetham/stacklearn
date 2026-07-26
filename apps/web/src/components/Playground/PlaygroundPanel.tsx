@@ -23,6 +23,21 @@ const getStoredSplit = (): number => {
     return DEFAULT_EDITOR_PCT;
 };
 
+const SIDEBAR_STORAGE_KEY = "stacklearn-sidebar-width";
+const MIN_SIDEBAR_WIDTH = 140;
+const MAX_SIDEBAR_WIDTH = 400;
+const DEFAULT_SIDEBAR_WIDTH = 176;
+
+const getStoredSidebarWidth = (): number => {
+    try {
+        const stored = Number(localStorage.getItem(SIDEBAR_STORAGE_KEY));
+        if (stored >= MIN_SIDEBAR_WIDTH && stored <= MAX_SIDEBAR_WIDTH) return stored;
+    } catch {
+        // ignore
+    }
+    return DEFAULT_SIDEBAR_WIDTH;
+};
+
 export const PlaygroundPanel: React.FC = () => {
     const {
         config,
@@ -41,7 +56,6 @@ export const PlaygroundPanel: React.FC = () => {
         removeTab,
         handleFileChange,
         handleRun,
-        handleReset,
         handleStop,
         handleSave,
         handleTerminalInput,
@@ -91,12 +105,15 @@ export const PlaygroundPanel: React.FC = () => {
     const splitContainerRef = useRef<HTMLDivElement>(null);
     const [terminalFocused, setTerminalFocused] = useState(false);
 
+    const [sidebarWidth, setSidebarWidth] = useState(getStoredSidebarWidth);
+    const [isSidebarResizing, setIsSidebarResizing] = useState(false);
+    const mainContentRef = useRef<HTMLDivElement>(null);
+
     // Keyboard shortcuts
     useKeyboardShortcuts({
         onRun: handleRun,
         onStop: handleStop,
         onSave: handleSave,
-        onReset: handleReset,
         onToggleTerminal: () => setTerminalFocused((f) => !f),
         onCloseTab: () => {
             if (activeFile && openTabs.length > 1) {
@@ -148,6 +165,48 @@ export const PlaygroundPanel: React.FC = () => {
         };
     }, [isResizing]);
 
+    // Sidebar (Files) horizontal resize logic
+    const handleSidebarResizeStart = useCallback((e: React.PointerEvent) => {
+        e.preventDefault();
+        setIsSidebarResizing(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isSidebarResizing) return;
+
+        const handlePointerMove = (e: PointerEvent) => {
+            const container = mainContentRef.current;
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            const width = e.clientX - rect.left;
+            setSidebarWidth(Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width)));
+        };
+
+        const handlePointerUp = () => {
+            setIsSidebarResizing(false);
+            setSidebarWidth((current) => {
+                try {
+                    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(current));
+                } catch {
+                    // ignore
+                }
+                return current;
+            });
+        };
+
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+        window.addEventListener("pointermove", handlePointerMove);
+        window.addEventListener("pointerup", handlePointerUp);
+
+        return () => {
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            window.removeEventListener("pointermove", handlePointerMove);
+            window.removeEventListener("pointerup", handlePointerUp);
+        };
+    }, [isSidebarResizing]);
+
     const clearTerminal = useCallback(() => {
         usePlaygroundStore.getState().clearTerminalOutput();
     }, []);
@@ -195,20 +254,46 @@ export const PlaygroundPanel: React.FC = () => {
                 onSelectPort={handleSelectPort}
                 onRun={handleRun}
                 onStop={handleStop}
-                onReset={handleReset}
             />
 
             {/* Main content */}
-            <div className="flex-1 flex overflow-hidden">
+            <div ref={mainContentRef} className="flex-1 flex overflow-hidden">
                 {/* File tree sidebar */}
-                <div className="w-44 flex-shrink-0 border-r border-surface-800/40 bg-surface-900/30 overflow-hidden">
-                    <div className="px-3 py-2 text-[10px] font-bold text-surface-500 uppercase tracking-wider">
+                <div
+                    style={{ width: `${sidebarWidth}px` }}
+                    className="flex-shrink-0 flex flex-col border-r border-surface-800/40 bg-surface-900/30 overflow-hidden"
+                >
+                    <div className="px-3 py-2 text-[10px] font-bold text-surface-500 uppercase tracking-wider flex-shrink-0">
                         Files
                     </div>
-                    <FileTree
-                        files={files}
-                        activeFile={activeFile}
-                        onSelectFile={showFile}
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                        <FileTree
+                            files={files}
+                            activeFile={activeFile}
+                            onSelectFile={showFile}
+                        />
+                    </div>
+                </div>
+
+                {/* Vertical drag handle for sidebar width */}
+                <div
+                    onPointerDown={handleSidebarResizeStart}
+                    onDoubleClick={() => {
+                        setSidebarWidth(DEFAULT_SIDEBAR_WIDTH);
+                        try {
+                            localStorage.setItem(SIDEBAR_STORAGE_KEY, String(DEFAULT_SIDEBAR_WIDTH));
+                        } catch { /* ignore */ }
+                    }}
+                    title="Drag to resize — double-click to reset"
+                    className="w-2 flex-shrink-0 flex items-center justify-center cursor-col-resize group touch-none"
+                    id="sidebar-resizer"
+                >
+                    <div
+                        className={`w-0.5 h-12 rounded-full transition-all duration-200 ${
+                            isSidebarResizing
+                                ? "bg-gradient-to-b from-flame-orange via-flame-rose to-flame-violet h-20 shadow-flame"
+                                : "bg-surface-700 group-hover:bg-gradient-to-b group-hover:from-flame-orange group-hover:via-flame-rose group-hover:to-flame-violet group-hover:h-20"
+                        }`}
                     />
                 </div>
 
@@ -259,8 +344,7 @@ export const PlaygroundPanel: React.FC = () => {
                                 );
                             })}
                             {showPreview && activePreviewPort !== null && (
-                                <div className="flex items-center gap-1.5 ml-1 px-2.5 py-1 rounded-lg text-xs bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet text-white shadow-flame flex-shrink-0">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white/90" />
+                                <div className="flex items-center ml-1 px-2.5 py-1 rounded-lg text-xs bg-surface-800/60 border border-surface-700/40 text-brand-300 flex-shrink-0">
                                     <span className="font-mono">Preview :{activePreviewPort}</span>
                                 </div>
                             )}

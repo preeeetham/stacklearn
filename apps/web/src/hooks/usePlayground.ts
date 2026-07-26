@@ -10,6 +10,7 @@ import {
     onServerReady,
     onPort,
     writeToProcessInput,
+    spawnShell,
 } from "../lib/webcontainers";
 import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
@@ -39,13 +40,39 @@ export function usePlayground() {
         setActiveFile,
         addTab,
         removeTab,
-        reset,
     } = usePlaygroundStore();
 
     const addToast = useToastStore((s) => s.addToast);
 
     const wcRef = useRef<WebContainer | null>(null);
     const processRef = useRef<WebContainerProcess | null>(null);
+    // A persistent shell, independent of the project's install/start
+    // process, so the terminal accepts input even when nothing is running.
+    const shellProcessRef = useRef<WebContainerProcess | null>(null);
+
+    // Whichever process should currently receive terminal keystrokes: the
+    // project's process while it's running, otherwise the persistent shell.
+    const activeTerminalProcess = useCallback(
+        () => processRef.current ?? shellProcessRef.current,
+        []
+    );
+
+    // Watches a process for exit so the UI (Run/Stop button, isRunning state)
+    // stays correct even when the process dies on its own — e.g. the learner
+    // presses Ctrl+C in the terminal instead of clicking Stop.
+    const watchProcessExit = useCallback(
+        (proc: WebContainerProcess) => {
+            proc.exit.then((code) => {
+                // Only react if this is still the tracked process — if Stop
+                // or a new Run already replaced/cleared it, do nothing.
+                if (processRef.current !== proc) return;
+                processRef.current = null;
+                setRunning(false);
+                addTerminalOutput(`\n⏹ Process exited (code ${code})\n`);
+            });
+        },
+        [setRunning, addTerminalOutput]
+    );
 
     // Boot WebContainer on mount
     useEffect(() => {
@@ -73,6 +100,21 @@ export function usePlayground() {
                         addToast(`Server ready on port ${port} — open the Preview tab`, "success");
                     });
                     setBooted(true);
+
+                    // Spawn a persistent shell so the terminal is usable
+                    // right away, before any project has been run.
+                    try {
+                        const shell = await spawnShell(wc, (data) => {
+                            if (!cancelled) addTerminalOutput(data);
+                        });
+                        if (cancelled) {
+                            shell.kill();
+                        } else {
+                            shellProcessRef.current = shell;
+                        }
+                    } catch (err) {
+                        console.error("Failed to start shell:", err);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to boot WebContainer:", err);
@@ -127,6 +169,8 @@ export function usePlayground() {
                 if (cancelled) {
                     result.startProcess.kill();
                     processRef.current = null;
+                } else {
+                    watchProcessExit(result.startProcess);
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -157,14 +201,20 @@ export function usePlayground() {
         [updateFile]
     );
 
-    // Write to the running process's stdin (terminal input)
-    const handleTerminalInput = useCallback((data: string) => {
-        if (processRef.current) {
-            writeToProcessInput(processRef.current, data).catch(() => {
-                // Process may have exited — ignore
-            });
-        }
-    }, []);
+    // Write to the active process's stdin (terminal input) — the running
+    // project process if there is one, otherwise the persistent shell, so
+    // the terminal always accepts input.
+    const handleTerminalInput = useCallback(
+        (data: string) => {
+            const target = activeTerminalProcess();
+            if (target) {
+                writeToProcessInput(target, data).catch(() => {
+                    // Process may have exited — ignore
+                });
+            }
+        },
+        [activeTerminalProcess]
+    );
 
     // Stop the running process
     const handleStop = useCallback(() => {
@@ -200,6 +250,7 @@ export function usePlayground() {
 
             const result = await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
             processRef.current = result.startProcess;
+            watchProcessExit(result.startProcess);
         } catch (err) {
             addTerminalOutput(
                 `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
@@ -207,38 +258,7 @@ export function usePlayground() {
             setInstalling(false);
             setRunning(false);
         }
-    }, [config, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput]);
-
-    // Reset to original config
-    const handleReset = useCallback(async () => {
-        if (!config || !wcRef.current) return;
-
-        // Kill existing process first
-        if (processRef.current) {
-            processRef.current.kill();
-            processRef.current = null;
-        }
-
-        reset();
-        clearTerminalOutput();
-        setRunning(true);
-        setInstalling(true);
-        clearPorts();
-
-        try {
-            await mountProject(wcRef.current, config);
-            setInstalling(false);
-
-            const result = await runProject(wcRef.current, config, (data) => addTerminalOutput(data));
-            processRef.current = result.startProcess;
-        } catch (err) {
-            addTerminalOutput(
-                `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
-            );
-            setInstalling(false);
-            setRunning(false);
-        }
-    }, [config, reset, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput]);
+    }, [config, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput, watchProcessExit]);
 
     // Save the active file to WebContainer (for Cmd+S shortcut)
     const handleSave = useCallback(async () => {
@@ -268,7 +288,6 @@ export function usePlayground() {
         removeTab,
         handleFileChange,
         handleRun,
-        handleReset,
         handleStop,
         handleSave,
         handleTerminalInput,

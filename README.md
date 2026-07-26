@@ -78,7 +78,7 @@ This starts both servers:
 
 ## Playground Features
 
-The Playground Panel supports live editing, in-browser execution, and toast notifications for actions like running, saving, and resetting code.
+The Playground Panel supports live editing, in-browser execution, and toast notifications for actions like running and saving code.
 
 ### Keyboard Shortcuts
 
@@ -86,7 +86,6 @@ The Playground Panel supports live editing, in-browser execution, and toast noti
 |---|---|
 | `Cmd/Ctrl + Enter` | Run (or Stop if already running) |
 | `Cmd/Ctrl + S` | Save file to WebContainer |
-| `Cmd/Ctrl + Shift + R` | Reset playground |
 | `` Cmd/Ctrl + ` `` | Toggle terminal focus |
 | `Cmd/Ctrl + W` | Close active tab |
 

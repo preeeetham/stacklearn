@@ -124,6 +124,23 @@ export async function runProject(
 }
 
 /**
+ * Spawn a persistent interactive shell (`jsh`) so the terminal has something
+ * to talk to even when no project process is running. Call once per
+ * WebContainer instance — its output is piped into the same terminal stream
+ * as install/start commands.
+ */
+export async function spawnShell(
+    wc: WebContainer,
+    onOutput: (data: string) => void
+): Promise<WebContainerProcess> {
+    const shellProcess = await wc.spawn("jsh", {
+        terminal: { cols: 80, rows: 24 },
+    });
+    shellProcess.output.pipeTo(new WritableStream({ write: onOutput }));
+    return shellProcess;
+}
+
+/**
  * Write data to a running process's stdin (e.g. user keystrokes from the terminal).
  */
 export async function writeToProcessInput(

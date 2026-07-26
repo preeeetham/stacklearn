@@ -39,7 +39,6 @@ interface PlaygroundState {
     clearPorts: () => void;
     setActivePreviewPort: (port: number) => void;
     setBooted: (booted: boolean) => void;
-    reset: () => void;
 }
 
 export const usePlaygroundStore = create<PlaygroundState>((set) => ({
@@ -155,22 +154,4 @@ export const usePlaygroundStore = create<PlaygroundState>((set) => ({
         }),
 
     setBooted: (booted) => set({ isBooted: booted }),
-
-    reset: () =>
-        set((state) => {
-            if (state.config) {
-                return {
-                    files: { ...state.config.files },
-                    activeFile: state.config.entry,
-                    openTabs: [state.config.entry],
-                    terminalOutput: [],
-                    previewUrl: null,
-                    ports: [],
-                    activePreviewPort: null,
-                    isRunning: false,
-                    isInstalling: false,
-                };
-            }
-            return {};
-        }),
 }));
