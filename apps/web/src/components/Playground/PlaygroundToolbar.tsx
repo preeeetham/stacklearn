@@ -7,6 +7,7 @@ interface PlaygroundToolbarProps {
     files: Record<string, string>;
     isRunning: boolean;
     isInstalling: boolean;
+    isRunnable: boolean;
     ports: ForwardedPort[];
     activePreviewPort: number | null;
     previewActive: boolean;
@@ -19,6 +20,7 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
     files,
     isRunning,
     isInstalling,
+    isRunnable,
     ports,
     activePreviewPort,
     previewActive,
@@ -71,10 +73,10 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                 ) : (
                     <button
                         onClick={onRun}
-                        disabled={isInstalling}
+                        disabled={isInstalling || !isRunnable}
                         id="run-button"
-                        title="Run (⌘ Enter)"
-                        className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet disabled:from-surface-700 disabled:via-surface-700 disabled:to-surface-700 text-white transition-all duration-200 shadow-flame disabled:shadow-none"
+                        title={isRunnable ? "Run (⌘ Enter)" : "Reference only — nothing to run"}
+                        className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet disabled:from-surface-700 disabled:via-surface-700 disabled:to-surface-700 text-white transition-all duration-200 shadow-flame disabled:shadow-none disabled:cursor-not-allowed"
                     >
                         {isInstalling ? (
                             <>

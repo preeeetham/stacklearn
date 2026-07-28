@@ -46,6 +46,7 @@ export const PlaygroundPanel: React.FC = () => {
         openTabs,
         isRunning,
         isInstalling,
+        isRunnable,
         terminalOutput,
         previewUrl,
         ports,
@@ -248,6 +249,7 @@ export const PlaygroundPanel: React.FC = () => {
                 files={files}
                 isRunning={isRunning}
                 isInstalling={isInstalling}
+                isRunnable={isRunnable}
                 ports={ports}
                 activePreviewPort={activePreviewPort}
                 previewActive={showPreview}
@@ -255,6 +257,19 @@ export const PlaygroundPanel: React.FC = () => {
                 onRun={handleRun}
                 onStop={handleStop}
             />
+
+            {/* Reference-only playground — e.g. a Python-only technology
+                falls back to a README.md the model can't actually execute in
+                the Node sandbox. Say so plainly instead of leaving the
+                learner wondering why Run does nothing. */}
+            {!isRunnable && (
+                <div
+                    className="mx-3 mt-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex-shrink-0"
+                    id="playground-reference-only-banner"
+                >
+                    📖 Reference only — this demo can't run in the browser sandbox. Check the files (e.g. README) for details.
+                </div>
+            )}
 
             {/* Main content */}
             <div ref={mainContentRef} className="flex-1 flex overflow-hidden">

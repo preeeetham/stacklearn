@@ -14,6 +14,7 @@ import {
     diffFiles,
     applyFileDiff,
 } from "../lib/webcontainers";
+import { isRunnableEntry } from "../lib/playgroundRunnable";
 import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
 export function usePlayground() {
@@ -180,6 +181,22 @@ export function usePlayground() {
                 if (cancelled) return;
 
                 setInstalling(false);
+
+                // Some playgrounds are reference-only — e.g. the model falls
+                // back to a README.md when the technology can't run in Node
+                // at all. The files are still mounted above so they're
+                // viewable/editable, but installing and running them would
+                // just spawn a terminal that immediately errors out on
+                // something like `npx tsx README.md`.
+                if (!isRunnableEntry(config!.entry)) {
+                    setRunning(false);
+                    addToast(
+                        "This demo is reference-only and can't run in the sandbox — see the files for details.",
+                        "info"
+                    );
+                    return;
+                }
+
                 setRunning(true);
 
                 const result = await runProject(
@@ -263,6 +280,14 @@ export function usePlayground() {
     const handleRun = useCallback(async () => {
         if (!config || !wcRef.current) return;
 
+        if (!isRunnableEntry(config.entry)) {
+            addToast(
+                "This demo is reference-only and can't run in the sandbox — see the files for details.",
+                "info"
+            );
+            return;
+        }
+
         // Kill existing process first
         if (processRef.current) {
             processRef.current.kill();
@@ -293,7 +318,7 @@ export function usePlayground() {
             setInstalling(false);
             setRunning(false);
         }
-    }, [config, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput, watchProcessExit]);
+    }, [config, clearTerminalOutput, setRunning, setInstalling, clearPorts, addTerminalOutput, watchProcessExit, addToast]);
 
     // Save the active file to WebContainer (for Cmd+S shortcut)
     const handleSave = useCallback(async () => {
@@ -312,6 +337,7 @@ export function usePlayground() {
         openTabs,
         isRunning,
         isInstalling,
+        isRunnable: config ? isRunnableEntry(config.entry) : true,
         terminalOutput,
         previewUrl,
         ports,
