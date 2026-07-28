@@ -98,9 +98,16 @@ export function useChat() {
                             updateLastAssistantMessage((msg) => ({
                                 ...msg,
                                 playgroundConfig: config,
+                                playgroundError: undefined,
                             }));
                             setConfig(config);
                         }
+                    },
+                    onPlaygroundError: (message) => {
+                        updateLastAssistantMessage((msg) => ({
+                            ...msg,
+                            playgroundError: message,
+                        }));
                     },
                     onFollowUps: (questions) => {
                         updateLastAssistantMessage((msg) => ({
@@ -147,11 +154,23 @@ export function useChat() {
         ]
     );
 
+    // Resend the request, telling the model its previous playground failed
+    // validation and why, so it can regenerate a config that actually runs.
+    const retryPlayground = useCallback(
+        (reason: string) => {
+            sendMessage(
+                `The playground you generated didn't validate and failed to load: ${reason}. Please regenerate the playground_config and file blocks, making sure they are valid this time.`
+            );
+        },
+        [sendMessage]
+    );
+
     return {
         messages,
         isLoading,
         error,
         sendMessage,
+        retryPlayground,
         clearMessages,
     };
 }

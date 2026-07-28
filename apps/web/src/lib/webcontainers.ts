@@ -96,23 +96,29 @@ export interface RunProjectResult {
 /**
  * Run the project: install dependencies, then execute the start command.
  * Returns the start process so the caller can write to its stdin or kill it.
+ * Pass `skipInstall` when the mounted files' dependencies haven't changed
+ * since the last run (see `mountFilesIncremental` below) — re-running
+ * `npm install` on every follow-up question is the single biggest
+ * contributor to perceived latency when nothing dependency-related changed.
  */
 export async function runProject(
     wc: WebContainer,
     config: PlaygroundConfig,
-    onOutput: (data: string) => void
+    onOutput: (data: string) => void,
+    options: { skipInstall?: boolean } = {}
 ): Promise<RunProjectResult> {
-    // Install dependencies
-    onOutput("$ " + config.installCommand + "\n");
-    const installParts = config.installCommand.split(" ");
-    const installProcess = await wc.spawn(installParts[0], installParts.slice(1));
-    installProcess.output.pipeTo(new WritableStream({ write: onOutput }));
-    const installExitCode = await installProcess.exit;
-    if (installExitCode !== 0) {
-        onOutput(`\n❌ Install failed with exit code ${installExitCode}\n`);
-        throw new Error(`Install failed with exit code ${installExitCode}`);
+    if (!options.skipInstall) {
+        onOutput("$ " + config.installCommand + "\n");
+        const installParts = config.installCommand.split(" ");
+        const installProcess = await wc.spawn(installParts[0], installParts.slice(1));
+        installProcess.output.pipeTo(new WritableStream({ write: onOutput }));
+        const installExitCode = await installProcess.exit;
+        if (installExitCode !== 0) {
+            onOutput(`\n❌ Install failed with exit code ${installExitCode}\n`);
+            throw new Error(`Install failed with exit code ${installExitCode}`);
+        }
+        onOutput("\n✅ Dependencies installed\n\n");
     }
-    onOutput("\n✅ Dependencies installed\n\n");
 
     // Run start command
     onOutput("$ " + config.startCommand + "\n");
@@ -121,6 +127,44 @@ export async function runProject(
     startProcess.output.pipeTo(new WritableStream({ write: onOutput }));
 
     return { startProcess };
+}
+
+/**
+ * Diff two flat file maps: which paths changed content (or are new), and
+ * which existing paths were dropped from `next` entirely.
+ */
+export function diffFiles(
+    prev: Record<string, string>,
+    next: Record<string, string>
+): { changed: Record<string, string>; removed: string[] } {
+    const changed: Record<string, string> = {};
+    for (const [path, contents] of Object.entries(next)) {
+        if (prev[path] !== contents) changed[path] = contents;
+    }
+    const removed = Object.keys(prev).filter((path) => !(path in next));
+    return { changed, removed };
+}
+
+/**
+ * Apply a file diff directly to disk — writes changed/new files and removes
+ * dropped ones — instead of remounting the entire tree. Used for follow-up
+ * playground updates where most files are byte-identical to the last run.
+ */
+export async function applyFileDiff(
+    wc: WebContainer,
+    changed: Record<string, string>,
+    removed: string[]
+): Promise<void> {
+    for (const [path, contents] of Object.entries(changed)) {
+        await writeFile(wc, path, contents);
+    }
+    for (const path of removed) {
+        try {
+            await wc.fs.rm(path);
+        } catch {
+            // Already gone, or was a directory — not worth failing the run over.
+        }
+    }
 }
 
 /**

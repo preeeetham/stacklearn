@@ -2,7 +2,6 @@ import type {
     ChatMessage,
     LLMMessage,
     LLMToolCall,
-    PlaygroundConfig,
     BrowseUrlArgs,
 } from "../types/index.js";
 import { SYSTEM_PROMPT } from "./prompts.js";
@@ -12,161 +11,15 @@ import {
     createChatCompletionNonStreaming,
 } from "../lib/groq.js";
 import type { SSEWriter } from "../lib/sse.js";
+import {
+    parsePlaygroundConfig,
+    parseFollowUps,
+    safeVisibleLength,
+    stripThinkBlocks,
+} from "./parsePlaygroundConfig.js";
 
 const DEFAULT_MODEL = process.env.DEFAULT_MODEL || "llama-3.3-70b-versatile";
 const MAX_TOOL_ITERATIONS = 5;
-
-// Control blocks the model emits after the visible explanation. Their contents
-// are parsed by the system and must never be streamed to the chat UI.
-const PLAYGROUND_START = "<playground_config>";
-const PLAYGROUND_END = "</playground_config>";
-const FOLLOWUPS_START = "<follow_ups>";
-const FOLLOWUPS_END = "</follow_ups>";
-// Files are emitted as raw <file path="...">…</file> blocks (not JSON-escaped
-// inside the config), so the model writes code as plain text instead of
-// escaping a whole file into a JSON string — the escaping is where it used to
-// drop closing quotes/brackets and produce code that wouldn't compile.
-const FILE_START = "<file";
-const FILE_BLOCK_RE = /<file\s+path=["']([^"']+)["']\s*>\n?([\s\S]*?)<\/file>/g;
-const CONTROL_TAGS = [PLAYGROUND_START, FOLLOWUPS_START, FILE_START];
-
-/**
- * Extract the JSON payload between a start/end tag pair, or null if absent.
- */
-function extractBlock(text: string, startTag: string, endTag: string): string | null {
-    const startIdx = text.indexOf(startTag);
-    const endIdx = text.indexOf(endTag);
-    if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) return null;
-    return text.slice(startIdx + startTag.length, endIdx).trim();
-}
-
-/**
- * Parse playground config from the assistant's response text.
- *
- * The <playground_config> block carries JSON metadata only (runtime, entry,
- * commands, port). File contents live in separate raw <file path="…">…</file>
- * blocks so the model never has to escape code into a JSON string.
- */
-function parsePlaygroundConfig(text: string): PlaygroundConfig | null {
-    const metaStr = extractBlock(text, PLAYGROUND_START, PLAYGROUND_END);
-    if (!metaStr) return null;
-
-    let meta: Partial<PlaygroundConfig>;
-    try {
-        meta = JSON.parse(metaStr) as Partial<PlaygroundConfig>;
-    } catch {
-        return null;
-    }
-
-    // Collect the raw file blocks. Trailing whitespace before </file> is
-    // trimmed; the first newline right after the opening tag is dropped by the
-    // regex so file contents start on their own line cleanly.
-    const files: Record<string, string> = {};
-    FILE_BLOCK_RE.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = FILE_BLOCK_RE.exec(text)) !== null) {
-        const path = match[1].trim();
-        const contents = match[2].replace(/\s+$/, "");
-        if (path) files[path] = contents;
-    }
-
-    if (Object.keys(files).length === 0) return null;
-
-    const firstFile = Object.keys(files)[0];
-    const entry = meta.entry || firstFile;
-
-    const config: PlaygroundConfig = {
-        runtime: "node",
-        entry,
-        files,
-        installCommand: meta.installCommand || "npm install",
-        startCommand: meta.startCommand || `npx tsx ${entry}`,
-        previewPort: meta.previewPort ?? null,
-    };
-
-    return normalizePlaygroundConfig(config);
-}
-
-/**
- * Parse the follow-up questions block into a list of up to 3 strings.
- */
-function parseFollowUps(text: string): string[] | null {
-    const jsonStr = extractBlock(text, FOLLOWUPS_START, FOLLOWUPS_END);
-    if (!jsonStr) return null;
-    try {
-        const parsed = JSON.parse(jsonStr) as unknown;
-        if (!Array.isArray(parsed)) return null;
-        const questions = parsed
-            .filter((q): q is string => typeof q === "string")
-            .map((q) => q.trim())
-            .filter((q) => q.length > 0)
-            .slice(0, 3);
-        return questions.length > 0 ? questions : null;
-    } catch {
-        return null;
-    }
-}
-
-/**
- * Guarantee the playground config actually runs in the WebContainer sandbox even
- * if the model forgot a detail: force `tsx` over the fragile `ts-node`, and make
- * sure `tsx` + `typescript` are declared when the entry file is TypeScript.
- */
-function normalizePlaygroundConfig(config: PlaygroundConfig): PlaygroundConfig {
-    const usesTypeScript =
-        config.entry?.endsWith(".ts") ||
-        Object.keys(config.files || {}).some((f) => f.endsWith(".ts"));
-
-    // ts-node is unreliable in WebContainers; tsx is the drop-in replacement.
-    let startCommand = (config.startCommand || "").replace(/\bts-node\b/g, "tsx");
-    if (usesTypeScript && !/\btsx\b/.test(startCommand) && /\bnode\b/.test(startCommand)) {
-        startCommand = startCommand.replace(/\bnode\b/, "tsx");
-    }
-
-    const files = { ...config.files };
-    if (usesTypeScript && typeof files["package.json"] === "string") {
-        try {
-            const pkg = JSON.parse(files["package.json"]) as {
-                devDependencies?: Record<string, string>;
-                dependencies?: Record<string, string>;
-                [k: string]: unknown;
-            };
-            pkg.devDependencies = pkg.devDependencies || {};
-            const hasDep = (name: string) =>
-                pkg.devDependencies?.[name] || pkg.dependencies?.[name];
-            if (!hasDep("tsx")) pkg.devDependencies.tsx = "^4.19.0";
-            if (!hasDep("typescript")) pkg.devDependencies.typescript = "^5.5.0";
-            files["package.json"] = JSON.stringify(pkg, null, 2);
-        } catch {
-            // Leave package.json untouched if it isn't valid JSON.
-        }
-    }
-
-    return { ...config, startCommand, files };
-}
-
-/**
- * Length of text that is safe to stream to the UI: everything before the first
- * control block, holding back a trailing fragment that might be a partial
- * opening tag (e.g. "<play") so it never leaks into the visible chat.
- */
-function safeVisibleLength(text: string): number {
-    let cut = text.length;
-    for (const tag of CONTROL_TAGS) {
-        const idx = text.indexOf(tag);
-        if (idx !== -1) cut = Math.min(cut, idx);
-    }
-    if (cut === text.length) {
-        const lt = text.lastIndexOf("<");
-        if (lt !== -1) {
-            const suffix = text.slice(lt);
-            if (CONTROL_TAGS.some((tag) => tag.startsWith(suffix))) {
-                cut = lt;
-            }
-        }
-    }
-    return cut;
-}
 
 /**
  * Main agent orchestrator that handles the conversation loop:
@@ -193,6 +46,13 @@ export async function runAgent(
     let iterations = 0;
     let fullResponseText = "";
     let useTools = true;
+    // Set after a tool-call round that emitted visible text, so the next
+    // round's text gets a separator inserted before it — otherwise a
+    // preamble like "Let me check the docs" from round 1 runs directly into
+    // "Now, about Hono..." from round 2 with no space between them, both in
+    // the accumulated parse buffer and in the chat UI (each round's streamed
+    // chunks are appended to the same message with no delimiter of their own).
+    let pendingRoundSeparator = false;
 
     // Try first request — if tools aren't supported, retry without them
     while (iterations < MAX_TOOL_ITERATIONS) {
@@ -200,19 +60,31 @@ export async function runAgent(
 
         let pendingToolCalls: LLMToolCall[] = [];
         let finishReason: string | null = null;
+        // Raw text as it streams in from the model, before <think> stripping.
+        let rawText = "";
+        // Derived from rawText with <think>...</think> blocks removed — this
+        // is what gets streamed to the client and accumulated for parsing.
         let streamedText = "";
         let emittedLen = 0;
         let needsRetryWithoutTools = false;
+        let separatorInserted = !pendingRoundSeparator;
 
         // We stream text to the client. If tool calls happen, we handle them.
         try {
             await new Promise<void>((resolve, reject) => {
                 createChatCompletion(llmMessages, selectedModel, {
                     onTextChunk(text) {
+                        rawText += text;
+                        let cleaned = stripThinkBlocks(rawText);
+                        if (!separatorInserted && cleaned.length > 0) {
+                            cleaned = "\n\n" + cleaned;
+                            separatorInserted = true;
+                        }
+                        streamedText = cleaned;
+
                         // Accumulate, then emit only the newly-safe portion — i.e.
                         // text before any control block (playground_config /
                         // follow_ups), holding back a possible partial opening tag.
-                        streamedText += text;
                         const visible = safeVisibleLength(streamedText);
                         if (visible > emittedLen) {
                             writer.send({
@@ -314,16 +186,25 @@ export async function runAgent(
 
             // Continue the loop — the next iteration will stream the agent's response
             pendingToolCalls = [];
+            pendingRoundSeparator = streamedText.length > 0;
             continue;
         }
 
         // No tool calls — we're done.
-        // Parse the control blocks out of the full response.
-        const config = parsePlaygroundConfig(fullResponseText);
-        if (config) {
+        // Parse -> validate -> repair -> report: extract the control blocks,
+        // repair what can be repaired, validate against the shared schema,
+        // and surface anything that still fails as a typed error the chat UI
+        // can show with a retry, instead of silently dropping the playground.
+        const parsed = parsePlaygroundConfig(fullResponseText);
+        if (parsed.ok) {
             writer.send({
                 type: "playground_config",
-                config,
+                config: parsed.config,
+            });
+        } else if (parsed.reason !== null) {
+            writer.send({
+                type: "playground_error",
+                message: parsed.reason,
             });
         }
 

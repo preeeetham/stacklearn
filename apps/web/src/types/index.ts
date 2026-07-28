@@ -1,4 +1,7 @@
 // Shared frontend types
+import type { PlaygroundConfig } from "@stacklearn/shared";
+
+export type { PlaygroundConfig };
 
 export interface ChatMessage {
     id: string;
@@ -6,6 +9,10 @@ export interface ChatMessage {
     content: string;
     toolCalls?: ToolCallInfo[];
     playgroundConfig?: PlaygroundConfig;
+    // Reason the playground config failed validation, if it did. Cleared on
+    // a successful retry (a fresh playgroundConfig arrives, or a later
+    // message succeeds).
+    playgroundError?: string;
     followUps?: string[];
     isStreaming?: boolean;
 }
@@ -17,15 +24,6 @@ export interface ToolCallInfo {
     status: "loading" | "done";
 }
 
-export interface PlaygroundConfig {
-    runtime: "node";
-    entry: string;
-    files: Record<string, string>;
-    installCommand: string;
-    startCommand: string;
-    previewPort: number | null;
-}
-
 export interface SSEEvent {
     type:
         | "text"
@@ -34,7 +32,8 @@ export interface SSEEvent {
         | "playground_config"
         | "follow_ups"
         | "done"
-        | "error";
+        | "error"
+        | "playground_error";
     content?: string;
     tool?: string;
     url?: string;

@@ -5,11 +5,13 @@ import { MessageBubble } from "./MessageBubble";
 interface MessageListProps {
     messages: ChatMessage[];
     onExplainCode?: (code: string) => void;
+    onRetryPlayground?: (reason: string) => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
     messages,
     onExplainCode,
+    onRetryPlayground,
 }) => {
     const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +72,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                     key={msg.id}
                     message={msg}
                     onExplainCode={onExplainCode}
+                    onRetryPlayground={onRetryPlayground}
                 />
             ))}
             <div ref={bottomRef} />

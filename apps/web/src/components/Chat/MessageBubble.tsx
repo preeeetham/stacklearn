@@ -3,16 +3,18 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../../types";
 import { ToolCallBadge } from "./ToolCallBadge";
-import { stripPlaygroundConfig } from "../../lib/parsePlaygroundConfig";
+import { stripPlaygroundConfig } from "../../lib/stripPlaygroundConfig";
 
 interface MessageBubbleProps {
     message: ChatMessage;
     onExplainCode?: (code: string) => void;
+    onRetryPlayground?: (reason: string) => void;
 }
 
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
     message,
     onExplainCode,
+    onRetryPlayground,
 }) => {
     const isUser = message.role === "user";
     const displayContent = isUser
@@ -102,6 +104,24 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         <span className="text-xs text-surface-500">
                             — {Object.keys(message.playgroundConfig.files).length} files loaded
                         </span>
+                    </div>
+                )}
+
+                {/* Playground validation failure — recoverable, so offer a retry
+                    instead of silently having no playground appear. */}
+                {!isUser && !message.isStreaming && message.playgroundError && (
+                    <div className="mt-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 animate-slide-up">
+                        <p className="text-xs text-red-300 leading-relaxed">
+                            ⚠️ Playground failed to generate: {message.playgroundError}
+                        </p>
+                        {onRetryPlayground && (
+                            <button
+                                onClick={() => onRetryPlayground(message.playgroundError!)}
+                                className="mt-2 px-2.5 py-1 rounded-md text-[11px] font-medium bg-red-500/15 hover:bg-red-500/25 text-red-200 transition-colors"
+                            >
+                                Retry
+                            </button>
+                        )}
                     </div>
                 )}
 

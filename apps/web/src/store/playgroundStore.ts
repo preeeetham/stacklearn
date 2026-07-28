@@ -123,11 +123,24 @@ export const usePlaygroundStore = create<PlaygroundState>((set) => ({
         set((state) => {
             const existing = state.ports.filter((p) => p.port !== port);
             const ports = [...existing, { port, url }].sort((a, b) => a.port - b.port);
+
+            // Prefer the port the model declared as previewPort — e.g. a
+            // sandbox-internal port (HMR, a bundler dev server) can open
+            // before the app's actual server, and without this the preview
+            // would land on the wrong port and show nothing useful. Falls
+            // back to first-come-first-served when there's no declared port
+            // or it doesn't match anything that's opened yet.
+            const declaredPort = state.config?.previewPort ?? null;
+            const shouldActivate =
+                state.activePreviewPort === null ||
+                (declaredPort !== null &&
+                    port === declaredPort &&
+                    state.activePreviewPort !== declaredPort);
+
             return {
                 ports,
-                // First port to appear becomes the active preview + default URL.
-                activePreviewPort: state.activePreviewPort ?? port,
-                previewUrl: state.previewUrl ?? url,
+                activePreviewPort: shouldActivate ? port : state.activePreviewPort,
+                previewUrl: shouldActivate ? url : state.previewUrl,
             };
         }),
 

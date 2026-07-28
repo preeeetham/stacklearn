@@ -1,4 +1,7 @@
 // Shared types for the StackLearn application
+import type { PlaygroundConfig } from "@stacklearn/shared";
+
+export type { PlaygroundConfig };
 
 export interface ChatMessage {
     role: "user" | "assistant";
@@ -8,15 +11,6 @@ export interface ChatMessage {
 export interface ChatRequest {
     messages: ChatMessage[];
     model?: string;
-}
-
-export interface PlaygroundConfig {
-    runtime: "node";
-    entry: string;
-    files: Record<string, string>;
-    installCommand: string;
-    startCommand: string;
-    previewPort: number | null;
 }
 
 export interface SSETextEvent {
@@ -55,6 +49,15 @@ export interface SSEErrorEvent {
     message: string;
 }
 
+// Distinct from SSEErrorEvent: this is a typed, recoverable failure — the
+// playground config the model produced didn't validate — rather than a
+// transport/agent-level error. The chat UI shows it with a retry action
+// instead of ending the turn.
+export interface SSEPlaygroundErrorEvent {
+    type: "playground_error";
+    message: string;
+}
+
 export type SSEEvent =
     | SSETextEvent
     | SSEToolCallEvent
@@ -62,7 +65,8 @@ export type SSEEvent =
     | SSEPlaygroundConfigEvent
     | SSEFollowUpsEvent
     | SSEDoneEvent
-    | SSEErrorEvent;
+    | SSEErrorEvent
+    | SSEPlaygroundErrorEvent;
 
 export interface ModelInfo {
     id: string;

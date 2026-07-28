@@ -11,6 +11,8 @@ import {
     onPort,
     writeToProcessInput,
     spawnShell,
+    diffFiles,
+    applyFileDiff,
 } from "../lib/webcontainers";
 import type { WebContainer, WebContainerProcess } from "@webcontainer/api";
 
@@ -49,6 +51,10 @@ export function usePlayground() {
     // A persistent shell, independent of the project's install/start
     // process, so the terminal accepts input even when nothing is running.
     const shellProcessRef = useRef<WebContainerProcess | null>(null);
+    // Snapshot of exactly what's currently on disk in the WebContainer (as of
+    // the last successful mount/write), so a follow-up config can be diffed
+    // against it instead of blindly remounting every file from scratch.
+    const mountedFilesRef = useRef<Record<string, string> | null>(null);
 
     // Whichever process should currently receive terminal keystrokes: the
     // project's process while it's running, otherwise the persistent shell.
@@ -147,20 +153,43 @@ export function usePlayground() {
                 }
 
                 clearTerminalOutput();
-                setInstalling(true);
                 setRunning(false);
                 clearPorts();
 
-                await mountProject(wc, config!);
+                const prevFiles = mountedFilesRef.current;
+                const nextFiles = config!.files;
+                // First mount ever: bulk-mount the whole tree. On every
+                // follow-up, only write what actually changed — most of a
+                // follow-up's files are byte-identical to the previous turn,
+                // and a full remount + reinstall on every question is the
+                // biggest contributor to perceived latency here.
+                const isFirstMount = prevFiles === null;
+                const depsChanged =
+                    isFirstMount || prevFiles["package.json"] !== nextFiles["package.json"];
+
+                if (depsChanged) setInstalling(true);
+
+                if (isFirstMount) {
+                    await mountProject(wc, config!);
+                } else {
+                    const { changed, removed } = diffFiles(prevFiles, nextFiles);
+                    await applyFileDiff(wc, changed, removed);
+                }
+                mountedFilesRef.current = { ...nextFiles };
 
                 if (cancelled) return;
 
                 setInstalling(false);
                 setRunning(true);
 
-                const result = await runProject(wc, config!, (data) => {
-                    if (!cancelled) addTerminalOutput(data);
-                });
+                const result = await runProject(
+                    wc,
+                    config!,
+                    (data) => {
+                        if (!cancelled) addTerminalOutput(data);
+                    },
+                    { skipInstall: !depsChanged }
+                );
 
                 // Always track the process so it can be killed later. If this
                 // run was superseded while starting, kill it now rather than
@@ -173,6 +202,10 @@ export function usePlayground() {
                     watchProcessExit(result.startProcess);
                 }
             } catch (err) {
+                // Disk state after a failed mount/install is uncertain — force
+                // a full remount on the next attempt rather than trusting a
+                // diff against what we assumed was written.
+                mountedFilesRef.current = null;
                 if (!cancelled) {
                     addTerminalOutput(
                         `\n❌ Error: ${err instanceof Error ? err.message : "Unknown error"}\n`
@@ -242,9 +275,11 @@ export function usePlayground() {
         clearPorts();
 
         try {
-            // Re-mount current files
+            // No remount needed: handleFileChange already writes every edit
+            // straight to the WebContainer's disk as the user types, so
+            // what's mounted is already exactly the current file state.
             const currentFiles = usePlaygroundStore.getState().files;
-            await mountProject(wcRef.current, { ...config, files: currentFiles });
+            mountedFilesRef.current = { ...currentFiles };
 
             setInstalling(false);
 

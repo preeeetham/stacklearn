@@ -4,7 +4,7 @@ import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 
 export const ChatPanel: React.FC = () => {
-    const { messages, isLoading, error, sendMessage, clearMessages } = useChat();
+    const { messages, isLoading, error, sendMessage, retryPlayground, clearMessages } = useChat();
 
     const handleExplainCode = (code: string) => {
         // If it's a suggestion chip (short text), send directly
@@ -42,7 +42,11 @@ export const ChatPanel: React.FC = () => {
             )}
 
             {/* Messages */}
-            <MessageList messages={messages} onExplainCode={handleExplainCode} />
+            <MessageList
+                messages={messages}
+                onExplainCode={handleExplainCode}
+                onRetryPlayground={retryPlayground}
+            />
 
             {/* Input */}
             <ChatInput onSend={sendMessage} isLoading={isLoading} />
