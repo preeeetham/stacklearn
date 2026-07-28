@@ -1,4 +1,9 @@
-import { PlaygroundConfigSchema, type PlaygroundConfig } from "@stacklearn/shared";
+// Relative path, not the "@stacklearn/shared" package name — see the comment
+// in apps/server/src/types/index.ts for why (Vercel Edge Function bundling).
+import {
+    PlaygroundConfigSchema,
+    type PlaygroundConfig,
+} from "../../../../packages/shared/src/playgroundConfig.js";
 
 // Control blocks the model emits after the visible explanation. Their contents
 // are parsed by the system and must never be streamed to the chat UI.

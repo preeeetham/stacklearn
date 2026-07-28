@@ -9,7 +9,6 @@
         "start": "bun run dist/index.js"
     },
     "dependencies": {
-        "@stacklearn/shared": "workspace:*",
         "hono": "^4.4.0"
     },
     "devDependencies": {

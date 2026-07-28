@@ -8,7 +8,6 @@
       "name": "@stacklearn/server",
       "version": "1.0.0",
       "dependencies": {
-        "@stacklearn/shared": "workspace:*",
         "hono": "^4.4.0",
       },
       "devDependencies": {

@@ -1,5 +1,11 @@
 // Shared types for the StackLearn application
-import type { PlaygroundConfig } from "@stacklearn/shared";
+//
+// Imported by relative path rather than the "@stacklearn/shared" package
+// name: Vercel's Edge Function bundler can't trace the bun workspace symlink
+// (apps/server/node_modules/@stacklearn/shared -> ../../packages/shared) and
+// fails the build with "referencing unsupported modules". A direct relative
+// import is just a normal local file as far as the edge bundler is concerned.
+import type { PlaygroundConfig } from "../../../../packages/shared/src/playgroundConfig.js";
 
 export type { PlaygroundConfig };
 
