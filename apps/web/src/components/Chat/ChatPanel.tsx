@@ -7,7 +7,7 @@ export const ChatPanel: React.FC = () => {
     const { messages, isLoading, error, sendMessage, retryPlayground, clearMessages } = useChat();
 
     const handleExplainCode = (code: string) => {
-        // If it's a suggestion chip (short text), send directly
+        // Suggestion chips / follow-ups are short and sent as-is.
         if (code.length < 100) {
             sendMessage(code);
         } else {
@@ -16,17 +16,19 @@ export const ChatPanel: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-transparent" id="chat-panel">
-            {/* Chat header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-surface-800/40">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-accent-400 animate-pulse" />
-                    <h2 className="text-sm font-semibold text-surface-200">Chat</h2>
+        <div className="flex h-full flex-col" id="chat-panel">
+            <div className="flex items-center justify-between border-b border-surface-800/70 px-5 py-3">
+                <div className="flex items-center gap-2.5">
+                    <h2 className="text-sm font-medium text-surface-100">Conversation</h2>
+                    <span className="text-xs text-surface-500">
+                        {isLoading ? <span className="text-shimmer">thinking…</span> : `${messages.length} messages`}
+                    </span>
                 </div>
                 {messages.length > 0 && (
                     <button
                         onClick={clearMessages}
-                        className="hover-lift text-xs text-surface-500 hover:text-surface-300 transition-colors px-2.5 py-1 rounded-full hover:bg-surface-800/50"
+                        disabled={isLoading}
+                        className="chip rounded-full px-2.5 py-1 text-xs text-surface-400 hover:text-surface-100 disabled:opacity-50"
                         id="clear-chat-button"
                     >
                         Clear
@@ -34,21 +36,21 @@ export const ChatPanel: React.FC = () => {
                 )}
             </div>
 
-            {/* Error banner */}
             {error && (
-                <div className="mx-4 mt-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs animate-slide-up">
-                    ⚠️ {error}
+                <div className="mx-4 mt-3 flex items-start gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-300 animate-slide-up">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-3.5 w-3.5 flex-shrink-0">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                    </svg>
+                    {error}
                 </div>
             )}
 
-            {/* Messages */}
             <MessageList
                 messages={messages}
                 onExplainCode={handleExplainCode}
                 onRetryPlayground={retryPlayground}
             />
 
-            {/* Input */}
             <ChatInput onSend={sendMessage} isLoading={isLoading} />
         </div>
     );

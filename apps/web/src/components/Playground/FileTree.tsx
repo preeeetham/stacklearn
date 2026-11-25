@@ -76,7 +76,7 @@ const TreeItem: React.FC<{
                 className={`
           w-full flex items-center gap-1.5 px-2 py-1 text-xs text-left rounded transition-colors duration-150
           ${isActive
-                        ? "bg-brand-500/15 text-brand-300 border-l-2 border-brand-400"
+                        ? "bg-surface-800 text-surface-50 border-l-2 border-brand-500"
                         : "text-surface-400 hover:text-surface-200 hover:bg-surface-800/50 border-l-2 border-transparent"
                     }
         `}

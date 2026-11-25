@@ -43,8 +43,11 @@ export interface SSEEvent {
     message?: string;
 }
 
+export type ProviderId = "nvidia" | "groq";
+
 export interface ModelInfo {
     id: string;
     name: string;
     description: string;
+    provider: ProviderId;
 }

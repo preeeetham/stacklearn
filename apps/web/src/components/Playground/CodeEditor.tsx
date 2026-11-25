@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { EditorView, basicSetup } from "codemirror";
-import { EditorState, type Extension } from "@codemirror/state";
+import { EditorState, type Extension, Prec } from "@codemirror/state";
 import { javascript } from "@codemirror/lang-javascript";
 import { json } from "@codemirror/lang-json";
 import { css } from "@codemirror/lang-css";
@@ -90,15 +90,32 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             ...(theme === "dark" ? [oneDark] : []),
             getLanguageExtension(fileName),
             updateListener,
-            EditorView.theme({
-                "&": {
-                    height: "100%",
-                    fontSize: "13px",
-                },
-                ".cm-scroller": {
-                    fontFamily: "'JetBrains Mono', monospace",
-                },
-            }),
+            // Highest precedence so the app's surfaces win over oneDark's
+            // fixed #282c34 background and blend into the panel.
+            Prec.highest(
+                EditorView.theme({
+                    "&": {
+                        height: "100%",
+                        fontSize: "13px",
+                        backgroundColor: "rgb(var(--color-surface-900) / 0.6)",
+                    },
+                    ".cm-scroller": {
+                        fontFamily: "'Geist Mono', 'JetBrains Mono', monospace",
+                    },
+                    ".cm-gutters": {
+                        backgroundColor: "transparent",
+                        borderRight: "1px solid rgb(var(--color-surface-800))",
+                        color: "rgb(var(--color-surface-600))",
+                    },
+                    ".cm-activeLineGutter": {
+                        backgroundColor: "rgb(var(--color-surface-800) / 0.6)",
+                        color: "rgb(var(--color-surface-300))",
+                    },
+                    ".cm-activeLine": {
+                        backgroundColor: "rgb(var(--color-brand-500) / 0.07)",
+                    },
+                })
+            ),
         ];
 
         // Try to restore cached state for this file

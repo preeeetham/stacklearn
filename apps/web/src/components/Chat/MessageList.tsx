@@ -22,39 +22,23 @@ export const MessageList: React.FC<MessageListProps> = ({
 
     if (messages.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center p-8">
-                <div className="text-center max-w-md animate-fade-in">
-                    {/* Logo / Hero */}
-                    <div className="relative mb-6">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-24 h-24 rounded-full bg-flame-violet/10 animate-pulse-slow" />
-                        </div>
-                        <img
-                            src="/logo.png"
-                            alt="StackLearn"
-                            className="relative w-14 h-14 mx-auto object-contain animate-float drop-shadow-[0_8px_20px_rgba(122,44,253,0.35)]"
-                        />
-                    </div>
-                    <h2 className="text-xl font-bold text-surface-100 mb-2">
-                        Welcome to StackLearn
-                    </h2>
-                    <p className="text-sm text-surface-400 mb-6 leading-relaxed">
-                        Ask about any tech stack, framework, or tool.
-                        I'll explain it and give you a live, runnable playground.
+            <div className="flex flex-1 items-center justify-center p-8">
+                <div className="max-w-sm text-center animate-fade-in">
+                    <img
+                        src="/logo.png"
+                        alt=""
+                        className="mx-auto mb-4 h-10 w-10 object-contain animate-float drop-shadow-[0_8px_20px_rgba(132,64,255,0.4)]"
+                    />
+                    <h2 className="mb-1.5 text-base font-medium text-surface-100">Fresh conversation</h2>
+                    <p className="mb-5 text-sm text-surface-400">
+                        The playground keeps its files. Ask about it, or start on something new.
                     </p>
-
-                    {/* Suggestion chips */}
                     <div className="flex flex-wrap justify-center gap-2">
-                        {[
-                            "What is Hono.js?",
-                            "Explain Zustand",
-                            "How does tRPC work?",
-                            "What's new in React 19?",
-                        ].map((suggestion) => (
+                        {["Explain the playground code", "What is Hono.js?", "Explain Zustand"].map((suggestion) => (
                             <button
                                 key={suggestion}
                                 onClick={() => onExplainCode?.(suggestion)}
-                                className="hover-lift px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/50 border border-surface-700/50 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200"
+                                className="chip rounded-full px-3 py-1.5 text-xs text-surface-300 hover:text-surface-100"
                             >
                                 {suggestion}
                             </button>
@@ -66,7 +50,7 @@ export const MessageList: React.FC<MessageListProps> = ({
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4" id="message-list">
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6" id="message-list">
             {messages.map((msg) => (
                 <MessageBubble
                     key={msg.id}

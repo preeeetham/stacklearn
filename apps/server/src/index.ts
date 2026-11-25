@@ -17,4 +17,7 @@ console.log(`
 export default {
     port,
     fetch: app.fetch,
+    // Bun's default 10s idle timeout is too short for reasoning models; the
+    // SSE heartbeat (lib/sse.ts) covers most gaps, this is the backstop.
+    idleTimeout: 255,
 };

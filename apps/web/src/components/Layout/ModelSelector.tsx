@@ -1,70 +1,92 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useChatStore } from "../../store/chatStore";
 import { useModels } from "../../hooks/useModels";
+import type { ProviderId } from "../../types";
 
+const PROVIDER_LABEL: Record<ProviderId, string> = {
+    nvidia: "NVIDIA NIM",
+    groq: "Groq",
+};
+
+/**
+ * Compact model picker shown under the prompt box: a quiet text button that
+ * opens a menu upward, grouped by provider, with a check on the active model.
+ */
 export const ModelSelector: React.FC = () => {
     const { selectedModel, setModel } = useChatStore();
     const { models } = useModels();
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const ref = useRef<HTMLDivElement>(null);
 
-    // Close on outside click
     useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
+        const onClick = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
         };
-        document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
+        const onKey = (e: KeyboardEvent) => e.key === "Escape" && setIsOpen(false);
+        document.addEventListener("mousedown", onClick);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onClick);
+            document.removeEventListener("keydown", onKey);
+        };
     }, []);
 
-    const currentModel = models.find((m) => m.id === selectedModel);
-    const displayName = currentModel?.name || selectedModel.split("/").pop() || "Select Model";
+    const current = models.find((m) => m.id === selectedModel);
+    const displayName = current?.name || selectedModel.split("/").pop() || "Select model";
+
+    const groups = (Object.keys(PROVIDER_LABEL) as ProviderId[])
+        .map((p) => ({ provider: p, items: models.filter((m) => m.provider === p) }))
+        .filter((g) => g.items.length > 0);
 
     return (
-        <div className="relative" ref={dropdownRef} id="model-selector">
+        <div className="relative" ref={ref} id="model-selector">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="hover-lift flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-800/50 border border-surface-700/50 hover:border-brand-500/40 text-xs text-surface-300 hover:text-surface-100 transition-all duration-200"
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors ${isOpen ? "bg-surface-800 text-surface-100" : "text-surface-400 hover:bg-surface-800 hover:text-surface-100"}`}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-brand-400">
-                    <path d="M4.632 3.533A2 2 0 016.577 2h6.846a2 2 0 011.945 1.533l1.976 8.234A3.489 3.489 0 0016 11.5H4c-.476 0-.93.095-1.344.267l1.976-8.234z" />
-                    <path fillRule="evenodd" d="M4 13a2 2 0 100 4h12a2 2 0 100-4H4zm11.24 2a.75.75 0 01.75-.75H16a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75V15zm-2.25-.75a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75H13a.75.75 0 00.75-.75V15a.75.75 0 00-.75-.75h-.01z" clipRule="evenodd" />
-                </svg>
                 <span className="font-medium">{displayName}</span>
-                <svg className={`w-3 h-3 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
+                <svg className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 rounded-2xl bar-float shadow-float-lg z-50 overflow-hidden animate-slide-up">
-                    <div className="p-2 border-b border-surface-800/50">
-                        <p className="text-[10px] font-bold text-surface-500 uppercase tracking-wider px-2 py-1">
-                            Select Model
-                        </p>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto p-1">
-                        {models.map((model) => (
-                            <button
-                                key={model.id}
-                                onClick={() => {
-                                    setModel(model.id);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-colors ${selectedModel === model.id
-                                        ? "bg-brand-500/15 text-brand-300"
-                                        : "text-surface-300 hover:bg-surface-800/50 hover:text-surface-100"
-                                    }`}
-                            >
-                                <div className="font-medium">{model.name}</div>
-                                <div className="text-[10px] text-surface-500 mt-0.5">
-                                    {model.description}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+                <div
+                    role="listbox"
+                    className="panel panel-solid absolute bottom-full right-0 z-50 mb-2 w-72 overflow-hidden rounded-xl p-1.5 shadow-float-lg animate-slide-up"
+                >
+                    {groups.map((g, gi) => (
+                        <div key={g.provider} className={gi > 0 ? "mt-1.5 border-t border-surface-800 pt-1.5" : ""}>
+                            <div className="px-2.5 pb-1 pt-1 text-[11px] text-surface-500">
+                                {PROVIDER_LABEL[g.provider]}
+                            </div>
+                            {g.items.map((model) => {
+                                const selected = model.id === selectedModel;
+                                return (
+                                    <button
+                                        key={model.id}
+                                        role="option"
+                                        aria-selected={selected}
+                                        title={model.description}
+                                        onClick={() => {
+                                            setModel(model.id);
+                                            setIsOpen(false);
+                                        }}
+                                        className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-surface-100 transition-colors hover:bg-surface-800"
+                                    >
+                                        <span className="truncate">{model.name}</span>
+                                        {selected && (
+                                            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 flex-shrink-0 text-brand-400">
+                                                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
