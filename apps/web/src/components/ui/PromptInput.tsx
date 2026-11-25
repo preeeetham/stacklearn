@@ -1,96 +1,202 @@
-import React, { useEffect, useRef, useState } from "react";
+// Adapted from Aceternity UI — Placeholders And Vanish Input
+// (https://ui.aceternity.com/components/placeholders-and-vanish-input).
+// Changes: themed with the app's tokens, a loading state, the submitted text
+// handed to onSubmit directly, and the model picker placed underneath.
+import { AnimatePresence, motion } from "motion/react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "../../lib/utils";
 import { ModelSelector } from "../Layout/ModelSelector";
+
+interface Particle {
+    x: number;
+    y: number;
+    r: number;
+    color: string;
+}
 
 interface PromptInputProps {
     onSubmit: (value: string) => void;
     isLoading: boolean;
-    /** Placeholder prompts cycled while the field is empty. */
     placeholders: string[];
-    size?: "lg" | "md";
     autoFocus?: boolean;
     id?: string;
+    className?: string;
 }
 
-/**
- * Compact prompt box with cycling placeholders and the model picker sitting
- * underneath it. Enter sends, Shift+Enter inserts a newline.
- */
 export const PromptInput: React.FC<PromptInputProps> = ({
     onSubmit,
     isLoading,
     placeholders,
-    size = "md",
     autoFocus = false,
     id = "chat-input",
+    className,
 }) => {
+    const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        const start = () => {
+            intervalRef.current = setInterval(
+                () => setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length),
+                3000
+            );
+        };
+        const onVisibility = () => {
+            if (document.visibilityState !== "visible" && intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            } else if (document.visibilityState === "visible" && !intervalRef.current) {
+                start();
+            }
+        };
+        start();
+        document.addEventListener("visibilitychange", onVisibility);
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            intervalRef.current = null;
+            document.removeEventListener("visibilitychange", onVisibility);
+        };
+    }, [placeholders]);
+
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const particlesRef = useRef<Particle[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
     const [value, setValue] = useState("");
-    const [placeholderIndex, setPlaceholderIndex] = useState(0);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const maxHeight = 160;
-    const textSize = size === "lg" ? "text-[15px]" : "text-sm";
+    const [animating, setAnimating] = useState(false);
 
     useEffect(() => {
-        if (placeholders.length < 2) return;
-        const t = setInterval(() => setPlaceholderIndex((i) => (i + 1) % placeholders.length), 3000);
-        return () => clearInterval(t);
-    }, [placeholders.length]);
+        if (autoFocus) inputRef.current?.focus();
+    }, [autoFocus]);
 
-    useEffect(() => {
-        const ta = textareaRef.current;
-        if (!ta) return;
-        ta.style.height = "auto";
-        // scrollHeight is 0 while the panel is hidden (behind the hero); leave
-        // the CSS min-height in charge then instead of pinning 0px.
-        if (ta.scrollHeight > 0) ta.style.height = Math.min(ta.scrollHeight, maxHeight) + "px";
+    // Rasterise the current text into particles (drawn at 2x, shown at 50%).
+    const draw = useCallback(() => {
+        const input = inputRef.current;
+        const canvas = canvasRef.current;
+        if (!input || !canvas) return;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+
+        canvas.width = 800;
+        canvas.height = 800;
+        ctx.clearRect(0, 0, 800, 800);
+        const styles = getComputedStyle(input);
+        const fontSize = parseFloat(styles.getPropertyValue("font-size"));
+        ctx.font = `${fontSize * 2}px ${styles.fontFamily}`;
+        ctx.fillStyle = styles.color;
+        ctx.fillText(value, 16, 40);
+
+        const data = ctx.getImageData(0, 0, 800, 800).data;
+        const particles: Particle[] = [];
+        for (let y = 0; y < 800; y++) {
+            const row = 4 * y * 800;
+            for (let x = 0; x < 800; x++) {
+                const e = row + 4 * x;
+                if (data[e + 3] > 0) {
+                    particles.push({
+                        x,
+                        y,
+                        r: 1,
+                        color: `rgba(${data[e]}, ${data[e + 1]}, ${data[e + 2]}, ${data[e + 3] / 255})`,
+                    });
+                }
+            }
+        }
+        particlesRef.current = particles;
     }, [value]);
 
     useEffect(() => {
-        if (autoFocus) textareaRef.current?.focus();
-    }, [autoFocus]);
+        draw();
+    }, [value, draw]);
+
+    const animate = (start: number) => {
+        const frame = (pos: number) => {
+            requestAnimationFrame(() => {
+                const next: Particle[] = [];
+                for (const p of particlesRef.current) {
+                    if (p.x < pos) {
+                        next.push(p);
+                    } else {
+                        if (p.r <= 0) continue;
+                        p.x += Math.random() > 0.5 ? 1 : -1;
+                        p.y += Math.random() > 0.5 ? 1 : -1;
+                        p.r -= 0.05 * Math.random();
+                        next.push(p);
+                    }
+                }
+                particlesRef.current = next;
+                const ctx = canvasRef.current?.getContext("2d");
+                if (ctx) {
+                    ctx.clearRect(pos, 0, 800, 800);
+                    for (const { x, y, r, color } of particlesRef.current) {
+                        if (x > pos) {
+                            ctx.beginPath();
+                            ctx.rect(x, y, r, r);
+                            ctx.fillStyle = color;
+                            ctx.strokeStyle = color;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                if (particlesRef.current.length > 0) {
+                    frame(pos - 8);
+                } else {
+                    setValue("");
+                    setAnimating(false);
+                }
+            });
+        };
+        frame(start);
+    };
 
     const submit = () => {
         const text = value.trim();
-        if (!text || isLoading) return;
-        setValue("");
+        if (!text || isLoading || animating) return;
+        setAnimating(true);
+        draw();
+        const maxX = particlesRef.current.reduce((m, p) => (p.x > m ? p.x : m), 0);
+        animate(maxX);
         onSubmit(text);
     };
 
     return (
-        <div id={`${id}-container`}>
-            <div className="flex items-end gap-2 rounded-xl border border-surface-700 bg-surface-900 py-1.5 pl-3.5 pr-1.5 shadow-float transition-colors focus-within:border-surface-500">
-                <div className="relative min-w-0 flex-1 py-1">
-                    <textarea
-                        ref={textareaRef}
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                submit();
-                            }
-                        }}
-                        rows={1}
-                        aria-label="Ask StackLearn"
-                        id={`${id}-textarea`}
-                        className={`block min-h-[24px] w-full resize-none bg-transparent leading-6 text-surface-100 outline-none ${textSize}`}
-                        style={{ maxHeight }}
-                    />
-                    {!value && (
-                        <span
-                            key={placeholderIndex}
-                            className={`pointer-events-none absolute left-0 top-1 max-w-full truncate leading-6 text-surface-500 animate-placeholder-in ${textSize}`}
-                        >
-                            {placeholders[placeholderIndex]}
-                        </span>
+        <div className={className} id={`${id}-container`}>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    submit();
+                }}
+                className={cn(
+                    "relative h-11 w-full overflow-hidden rounded-full border border-surface-700 bg-surface-900 shadow-float transition duration-200 focus-within:border-surface-500",
+                    value && "bg-surface-850"
+                )}
+            >
+                <canvas
+                    ref={canvasRef}
+                    className={cn(
+                        "pointer-events-none absolute left-3 top-[22%] origin-top-left scale-50 pr-20 text-base",
+                        animating ? "opacity-100" : "opacity-0"
                     )}
-                </div>
+                />
+                <input
+                    ref={inputRef}
+                    value={value}
+                    onChange={(e) => !animating && setValue(e.target.value)}
+                    type="text"
+                    aria-label="Ask StackLearn"
+                    id={`${id}-textarea`}
+                    autoComplete="off"
+                    className={cn(
+                        "relative z-50 h-full w-full rounded-full border-none bg-transparent pl-5 pr-14 text-sm text-surface-100 focus:outline-none",
+                        animating && "text-transparent"
+                    )}
+                />
 
                 <button
-                    onClick={submit}
+                    type="submit"
                     disabled={!value.trim() || isLoading}
                     id={`${id}-send`}
                     aria-label="Send"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white transition-colors hover:bg-brand-600 disabled:bg-surface-800 disabled:text-surface-500"
+                    className="absolute right-1.5 top-1/2 z-50 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500 text-white transition duration-200 hover:bg-brand-600 disabled:bg-surface-800 disabled:text-surface-500"
                 >
                     {isLoading ? (
                         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -98,12 +204,45 @@ export const PromptInput: React.FC<PromptInputProps> = ({
                             <path className="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                     ) : (
-                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                            <path fillRule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clipRule="evenodd" />
-                        </svg>
+                        <motion.svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                        >
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                            <motion.path
+                                d="M5 12l14 0"
+                                initial={{ strokeDasharray: "50%", strokeDashoffset: "50%" }}
+                                animate={{ strokeDashoffset: value ? 0 : "50%" }}
+                                transition={{ duration: 0.3, ease: "linear" }}
+                            />
+                            <path d="M13 18l6 -6" />
+                            <path d="M13 6l6 6" />
+                        </motion.svg>
                     )}
                 </button>
-            </div>
+
+                <div className="pointer-events-none absolute inset-0 flex items-center rounded-full">
+                    <AnimatePresence mode="wait">
+                        {!value && (
+                            <motion.p
+                                key={`placeholder-${currentPlaceholder}`}
+                                initial={{ y: 5, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: -15, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "linear" }}
+                                className="w-[calc(100%-4rem)] truncate pl-5 text-left text-sm font-normal text-surface-500"
+                            >
+                                {placeholders[currentPlaceholder]}
+                            </motion.p>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </form>
 
             <div className="mt-1.5 flex justify-end">
                 <ModelSelector />
