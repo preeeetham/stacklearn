@@ -74,10 +74,13 @@ export type SSEEvent =
     | SSEErrorEvent
     | SSEPlaygroundErrorEvent;
 
+export type ProviderId = "nvidia" | "groq";
+
 export interface ModelInfo {
     id: string;
     name: string;
     description: string;
+    provider: ProviderId;
 }
 
 export interface LLMMessage {

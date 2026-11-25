@@ -17,11 +17,15 @@ interface ChatState {
     clearMessages: () => void;
 }
 
-const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+// NVIDIA NIM's Nemotron 3 Ultra is the default; the server's /api/models
+// response can override it (see useModels). The storage key was bumped from
+// "stacklearn-model" so returning visitors move off the old Groq default.
+export const DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b";
+const MODEL_STORAGE_KEY = "stacklearn-model-v2";
 
 const getStoredModel = (): string => {
     try {
-        return localStorage.getItem("stacklearn-model") || DEFAULT_MODEL;
+        return localStorage.getItem(MODEL_STORAGE_KEY) || DEFAULT_MODEL;
     } catch {
         return DEFAULT_MODEL;
     }
@@ -55,7 +59,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
     setModel: (model) => {
         try {
-            localStorage.setItem("stacklearn-model", model);
+            localStorage.setItem(MODEL_STORAGE_KEY, model);
         } catch {
             // ignore
         }

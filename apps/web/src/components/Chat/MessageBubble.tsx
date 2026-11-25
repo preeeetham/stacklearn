@@ -23,14 +23,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
     return (
         <div
-            className={`flex ${isUser ? "justify-end" : "justify-start"} animate-slide-up`}
+            className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"} animate-slide-up`}
             id={`message-${message.id}`}
         >
+            {!isUser && (
+                <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-surface-700 bg-surface-850">
+                    <img src="/logo.png" alt="" className="h-4 w-4 object-contain" />
+                </div>
+            )}
             <div
-                className={`max-w-[85%] ${isUser
-                        ? "bg-gradient-to-br from-brand-500/20 to-flame-violet/10 border border-brand-500/25 rounded-2xl rounded-br-md"
-                        : "bg-transparent"
-                    } ${isUser ? "px-4 py-3" : "px-1 py-1"}`}
+                className={`min-w-0 ${isUser
+                    ? "max-w-[85%] rounded-2xl rounded-br-md border border-surface-700 bg-surface-800 px-4 py-2.5"
+                    : "flex-1 pt-0.5"
+                    }`}
             >
                 {/* Tool call badges */}
                 {message.toolCalls && message.toolCalls.length > 0 && (
@@ -67,6 +72,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                                     return (
                                         <div className="relative group/code">
+                                            {match && (
+                                                <span className="absolute left-3 top-2 z-10 font-mono text-[10px] uppercase tracking-wider text-surface-500">
+                                                    {match[1]}
+                                                </span>
+                                            )}
                                             <pre className={className}>
                                                 <code className={className} {...props}>
                                                     {children}
@@ -77,7 +87,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                                                 {onExplainCode && (
                                                     <button
                                                         onClick={() => onExplainCode(codeString)}
-                                                        className="px-2 py-1 rounded text-[10px] font-medium bg-surface-700/80 hover:bg-surface-600 text-surface-300 hover:text-surface-100 backdrop-blur transition-colors"
+                                                        className="chip px-2 py-1 rounded-md text-[10px] font-medium text-surface-300 hover:text-surface-100 backdrop-blur"
                                                         title="Explain this code"
                                                     >
                                                         Explain
@@ -96,13 +106,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                 {/* Playground indicator */}
                 {message.playgroundConfig && (
-                    <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-500/10 border border-accent-500/20">
-                        <div className="w-2 h-2 rounded-full bg-accent-400 animate-pulse" />
-                        <span className="text-xs text-accent-300 font-medium">
-                            Playground updated
-                        </span>
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-accent-500/25 bg-accent-500/10 px-3 py-2">
+                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 text-accent-400">
+                            <path fillRule="evenodd" d="M6.28 5.22a.75.75 0 010 1.06L2.56 10l3.72 3.72a.75.75 0 01-1.06 1.06L.97 10.53a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 0zm7.44 0a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L17.44 10l-3.72-3.72a.75.75 0 010-1.06z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs font-medium text-accent-300">Playground ready</span>
                         <span className="text-xs text-surface-500">
-                            — {Object.keys(message.playgroundConfig.files).length} files loaded
+                            {Object.keys(message.playgroundConfig.files).length} files
                         </span>
                     </div>
                 )}
@@ -110,9 +120,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 {/* Playground validation failure — recoverable, so offer a retry
                     instead of silently having no playground appear. */}
                 {!isUser && !message.isStreaming && message.playgroundError && (
-                    <div className="mt-3 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 animate-slide-up">
+                    <div className="mt-3 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/25 animate-slide-up">
                         <p className="text-xs text-red-300 leading-relaxed">
-                            ⚠️ Playground failed to generate: {message.playgroundError}
+                            The playground couldn't be generated: {message.playgroundError}
                         </p>
                         {onRetryPlayground && (
                             <button
@@ -131,15 +141,15 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                     message.followUps &&
                     message.followUps.length > 0 && (
                         <div className="mt-3">
-                            <p className="text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-1.5">
+                            <p className="text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-2">
                                 Ask next
                             </p>
-                            <div className="flex flex-col gap-1.5">
+                            <div className="flex flex-wrap gap-1.5">
                                 {message.followUps.map((q, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => onExplainCode?.(q)}
-                                        className="hover-lift group/followup text-left px-3 py-1.5 rounded-xl text-xs bg-surface-800/40 border border-surface-700/40 text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 hover:border-brand-500/30 transition-all duration-200 flex items-center gap-2"
+                                        className="chip group/followup text-left px-3 py-1.5 rounded-full text-xs text-surface-300 hover:text-surface-50 hover:border-brand-500/40 flex items-center gap-1.5"
                                     >
                                         <span className="text-brand-400 group-hover/followup:translate-x-0.5 transition-transform">
                                             →
@@ -153,10 +163,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
                 {/* Typing indicator */}
                 {message.isStreaming && !message.content && (
-                    <div className="flex items-center gap-1 px-2 py-2">
-                        <div className="typing-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
-                        <div className="typing-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
-                        <div className="typing-dot w-1.5 h-1.5 rounded-full bg-brand-400" />
+                    <div className="py-1.5 text-sm">
+                        <span className="text-shimmer font-medium">Thinking…</span>
                     </div>
                 )}
             </div>
@@ -177,7 +185,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
     return (
         <button
             onClick={handleCopy}
-            className="px-2 py-1 rounded text-[10px] font-medium bg-surface-700/80 hover:bg-surface-600 text-surface-300 hover:text-surface-100 backdrop-blur transition-colors"
+            className="chip px-2 py-1 rounded-md text-[10px] font-medium text-surface-300 hover:text-surface-100 backdrop-blur"
             title="Copy code"
         >
             {copied ? "Copied!" : "Copy"}

@@ -2,12 +2,9 @@ import React from "react";
 import { useToastStore } from "../../store/toastStore";
 
 const variantStyles = {
-    success:
-        "bg-accent-500/15 border-accent-500/30 text-accent-300",
-    error:
-        "bg-red-500/15 border-red-500/30 text-red-300",
-    info:
-        "bg-brand-500/15 border-brand-500/30 text-brand-300",
+    success: "text-accent-300 [&>svg]:text-accent-400",
+    error: "text-red-300 [&>svg]:text-red-400",
+    info: "text-brand-300 [&>svg]:text-brand-400",
 };
 
 const variantIcons = {
@@ -38,7 +35,7 @@ export const ToastContainer: React.FC = () => {
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
-                    className={`pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-medium backdrop-blur-lg shadow-float animate-slide-in-right ${variantStyles[toast.variant]}`}
+                    className={`panel panel-solid pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium animate-slide-in-right ${variantStyles[toast.variant]}`}
                 >
                     {variantIcons[toast.variant]}
                     <span>{toast.message}</span>

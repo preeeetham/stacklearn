@@ -9,7 +9,8 @@ import { browseUrl } from "./browse.js";
 import {
     createChatCompletion,
     createChatCompletionNonStreaming,
-} from "../lib/groq.js";
+} from "../lib/llm.js";
+import { defaultModelId } from "../lib/providers.js";
 import type { SSEWriter } from "../lib/sse.js";
 import {
     parsePlaygroundConfig,
@@ -18,12 +19,11 @@ import {
     stripThinkBlocks,
 } from "./parsePlaygroundConfig.js";
 
-const DEFAULT_MODEL = process.env.DEFAULT_MODEL || "llama-3.3-70b-versatile";
 const MAX_TOOL_ITERATIONS = 5;
 
 /**
  * Main agent orchestrator that handles the conversation loop:
- * 1. Sends messages to the LLM (Groq) with streaming
+ * 1. Sends messages to the LLM (NVIDIA NIM by default, or Groq) with streaming
  * 2. Handles tool calls (browse_url)
  * 3. Streams response events to the client via SSE
  */
@@ -32,7 +32,7 @@ export async function runAgent(
     model: string | undefined,
     writer: SSEWriter
 ): Promise<void> {
-    const selectedModel = model || DEFAULT_MODEL;
+    const selectedModel = model || defaultModelId();
 
     // Build the LLM messages array
     const llmMessages: LLMMessage[] = [
@@ -110,9 +110,9 @@ export async function runAgent(
             const errorMsg = error instanceof Error ? error.message : String(error);
 
             // Check if the error is about tool use not being supported.
-            // Groq returns a 400 with an error message mentioning tools /
+            // Providers return a 400 with an error message mentioning tools /
             // function calling when the selected model can't use them (all
-            // currently-recommended Groq models do, so this is a safety net for
+            // recommended models do, so this is a safety net for
             // custom DEFAULT_MODEL / model overrides).
             const lowerErr = errorMsg.toLowerCase();
             if (

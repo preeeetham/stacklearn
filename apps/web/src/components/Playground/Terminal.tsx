@@ -11,11 +11,11 @@ interface TerminalProps {
 }
 
 const DARK_TERMINAL_THEME = {
-    background: "#101013",
+    background: "#0b0b10",
     foreground: "#e2e8f0",
-    cursor: "#7a2cfd",
-    selectionBackground: "#35353d",
-    black: "#0a0a0c",
+    cursor: "#8440ff",
+    selectionBackground: "#2a2a36",
+    black: "#040407",
     red: "#f87171",
     green: "#4ade80",
     yellow: "#fbbf24",
@@ -156,9 +156,8 @@ export const Terminal: React.FC<TerminalProps> = ({ output, onInput, onClear }) 
     return (
         <div className="h-full w-full flex flex-col" id="terminal-wrapper">
             {/* Terminal header */}
-            <div className="flex items-center justify-between px-3 py-1.5 bg-surface-900/50 border-b border-surface-800/40 flex-shrink-0">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-surface-950/30 border-b border-surface-800/70 flex-shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-accent-400/60" />
                     <span className="text-[10px] font-medium text-surface-500 uppercase tracking-wider">Terminal</span>
                 </div>
                 {onClear && (

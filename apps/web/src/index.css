@@ -8,95 +8,104 @@
 
 :root,
 .dark {
-  --color-surface-50: 247 247 248;
-  --color-surface-100: 238 238 239;
-  --color-surface-200: 220 220 224;
-  --color-surface-300: 194 194 201;
-  --color-surface-400: 143 143 154;
-  --color-surface-500: 107 107 118;
-  --color-surface-600: 77 77 88;
-  --color-surface-700: 53 53 61;
-  --color-surface-800: 33 33 38;
-  --color-surface-850: 24 24 28;
-  --color-surface-900: 18 18 21;
-  --color-surface-950: 10 10 12;
+  /* Neutral, faintly cool near-black scale (Aceternity-style canvas) */
+  --color-surface-50: 250 250 250;
+  --color-surface-100: 244 244 245;
+  --color-surface-200: 228 228 231;
+  --color-surface-300: 212 212 216;
+  --color-surface-400: 161 161 170;
+  --color-surface-500: 113 113 122;
+  --color-surface-600: 82 82 91;
+  --color-surface-700: 50 50 56;
+  --color-surface-800: 35 35 39;
+  --color-surface-850: 24 24 27;
+  --color-surface-900: 17 17 19;
+  --color-surface-950: 9 9 11;
 
-  --color-brand-50: 245 240 255;
-  --color-brand-100: 236 225 255;
-  --color-brand-200: 217 194 255;
-  --color-brand-300: 188 147 255;
-  --color-brand-400: 157 101 253;
-  --color-brand-500: 122 44 253;
-  --color-brand-600: 104 23 224;
-  --color-brand-700: 85 16 184;
+  --color-brand-50: 239 246 255;
+  --color-brand-100: 219 234 254;
+  --color-brand-200: 191 219 254;
+  --color-brand-300: 147 197 253;
+  --color-brand-400: 96 165 250;
+  --color-brand-500: 59 130 246;
+  --color-brand-600: 37 99 235;
+  --color-brand-700: 29 78 216;
 
-  --color-accent-50: 240 253 244;
-  --color-accent-100: 220 252 231;
-  --color-accent-200: 187 247 208;
-  --color-accent-300: 134 239 172;
-  --color-accent-400: 74 222 128;
-  --color-accent-500: 34 197 94;
-  --color-accent-600: 22 163 74;
-  --color-accent-700: 21 128 61;
+  --color-accent-50: 236 253 245;
+  --color-accent-100: 209 250 229;
+  --color-accent-200: 167 243 208;
+  --color-accent-300: 110 231 183;
+  --color-accent-400: 52 211 153;
+  --color-accent-500: 16 185 129;
+  --color-accent-600: 5 150 105;
+  --color-accent-700: 4 120 87;
 
-  --color-flame-orange: 251 91 31;
-  --color-flame-rose: 225 66 127;
-  --color-flame-violet: 122 44 253;
+  --color-flame-orange: 255 106 42;
+  --color-flame-rose: 240 70 140;
+  --color-flame-violet: 132 64 255;
 
-  --color-glow-cyan: 6 182 212;
+  --color-glow-cyan: 34 211 238;
   --color-glow-purple: 168 85 247;
   --color-glow-pink: 236 72 153;
 
-  --shadow-float: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
-  --shadow-float-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.55), 0 4px 16px -4px rgba(0, 0, 0, 0.35);
-  --shadow-flame: 0 8px 24px -6px rgba(122, 44, 253, 0.45);
+  --dot-color: 255 255 255;
+  --dot-opacity: 0.06;
+  --panel-highlight: rgba(255, 255, 255, 0.04);
+
+  --shadow-float: 0 16px 40px -12px rgba(0, 0, 0, 0.7), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow-float-lg: 0 30px 70px -16px rgba(0, 0, 0, 0.75), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
+  --shadow-flame: 0 10px 30px -8px rgba(240, 70, 140, 0.55);
 
   color-scheme: dark;
 }
 
 .light {
-  --color-surface-50: 15 15 18;
-  --color-surface-100: 24 24 28;
-  --color-surface-200: 45 45 51;
-  --color-surface-300: 71 71 79;
-  --color-surface-400: 107 107 118;
-  --color-surface-500: 138 138 148;
-  --color-surface-600: 172 172 181;
-  --color-surface-700: 206 206 213;
-  --color-surface-800: 228 228 233;
-  --color-surface-850: 238 238 241;
+  --color-surface-50: 9 9 11;
+  --color-surface-100: 24 24 27;
+  --color-surface-200: 39 39 42;
+  --color-surface-300: 63 63 70;
+  --color-surface-400: 82 82 91;
+  --color-surface-500: 113 113 122;
+  --color-surface-600: 161 161 170;
+  --color-surface-700: 212 212 216;
+  --color-surface-800: 228 228 231;
+  --color-surface-850: 240 240 242;
   --color-surface-900: 255 255 255;
-  --color-surface-950: 244 244 247;
+  --color-surface-950: 250 250 250;
 
-  --color-brand-50: 245 240 255;
-  --color-brand-100: 236 225 255;
-  --color-brand-200: 217 194 255;
-  --color-brand-300: 104 23 224;
-  --color-brand-400: 85 16 184;
-  --color-brand-500: 122 44 253;
-  --color-brand-600: 104 23 224;
-  --color-brand-700: 85 16 184;
+  --color-brand-50: 239 246 255;
+  --color-brand-100: 219 234 254;
+  --color-brand-200: 191 219 254;
+  --color-brand-300: 29 78 216;
+  --color-brand-400: 37 99 235;
+  --color-brand-500: 37 99 235;
+  --color-brand-600: 29 78 216;
+  --color-brand-700: 30 64 175;
 
-  --color-accent-50: 240 253 244;
-  --color-accent-100: 220 252 231;
-  --color-accent-200: 187 247 208;
-  --color-accent-300: 21 128 61;
-  --color-accent-400: 22 163 74;
-  --color-accent-500: 34 197 94;
-  --color-accent-600: 22 163 74;
-  --color-accent-700: 21 128 61;
+  --color-accent-50: 236 253 245;
+  --color-accent-100: 209 250 229;
+  --color-accent-200: 167 243 208;
+  --color-accent-300: 4 120 87;
+  --color-accent-400: 5 150 105;
+  --color-accent-500: 16 185 129;
+  --color-accent-600: 5 150 105;
+  --color-accent-700: 4 120 87;
 
-  --color-flame-orange: 251 91 31;
-  --color-flame-rose: 225 66 127;
+  --color-flame-orange: 245 90 25;
+  --color-flame-rose: 225 50 125;
   --color-flame-violet: 122 44 253;
 
   --color-glow-cyan: 8 145 178;
   --color-glow-purple: 147 51 234;
   --color-glow-pink: 219 39 119;
 
-  --shadow-float: 0 12px 32px -8px rgba(15, 15, 20, 0.10), 0 2px 8px -2px rgba(15, 15, 20, 0.06);
-  --shadow-float-lg: 0 24px 60px -12px rgba(15, 15, 20, 0.14), 0 4px 16px -4px rgba(15, 15, 20, 0.08);
-  --shadow-flame: 0 8px 24px -6px rgba(122, 44, 253, 0.3);
+  --dot-color: 9 9 11;
+  --dot-opacity: 0.07;
+  --panel-highlight: rgba(255, 255, 255, 1);
+
+  --shadow-float: 0 16px 40px -14px rgba(20, 20, 40, 0.14), 0 2px 8px -2px rgba(20, 20, 40, 0.06);
+  --shadow-float-lg: 0 30px 70px -18px rgba(20, 20, 40, 0.2), 0 4px 16px -4px rgba(20, 20, 40, 0.08);
+  --shadow-flame: 0 10px 30px -10px rgba(225, 50, 125, 0.4);
 
   color-scheme: light;
 }
@@ -120,7 +129,7 @@ body,
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Geist", "Inter", system-ui, -apple-system, sans-serif;
   background-color: rgb(var(--color-surface-950));
   color: rgb(var(--color-surface-100));
   -webkit-font-smoothing: antialiased;
@@ -199,7 +208,7 @@ body {
 }
 
 .markdown-content code {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: "Geist Mono", "JetBrains Mono", monospace;
   font-size: 0.85em;
   padding: 0.15em 0.4em;
   border-radius: 4px;
@@ -210,15 +219,16 @@ body {
 
 .markdown-content pre {
   margin: 0.75rem 0;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow-x: auto;
-  background: rgb(var(--color-surface-850)) !important;
-  border: 1px solid rgb(var(--color-surface-800));
+  background: rgb(var(--color-surface-950) / 0.7) !important;
+  border: 1px solid rgb(var(--color-surface-700) / 0.6);
+  box-shadow: inset 0 1px 0 var(--panel-highlight);
 }
 
 .markdown-content pre code {
   display: block;
-  padding: 1rem;
+  padding: 2rem 1rem 1rem;
   font-size: 0.85rem;
   line-height: 1.6;
   background: transparent !important;
@@ -238,7 +248,7 @@ body {
 }
 
 .markdown-content blockquote {
-  border-left: 3px solid rgb(var(--color-brand-500));
+  border-left: 3px solid rgb(var(--color-surface-600));
   padding: 0.5rem 1rem;
   margin: 0.75rem 0;
   background: rgb(var(--color-brand-500) / 0.08);
@@ -277,7 +287,7 @@ body {
 
 .cm-editor {
   height: 100%;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Geist Mono", "JetBrains Mono", monospace;
   font-size: 14px;
 }
 
@@ -298,86 +308,7 @@ body {
 /* Animations                                   */
 /* ============================================ */
 
-@keyframes typing-dot {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
-}
 
-.typing-dot:nth-child(1) { animation: typing-dot 1.4s infinite 0s; }
-.typing-dot:nth-child(2) { animation: typing-dot 1.4s infinite 0.2s; }
-.typing-dot:nth-child(3) { animation: typing-dot 1.4s infinite 0.4s; }
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animated-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-/* ============================================ */
-/* Glassmorphism Utilities                      */
-/* ============================================ */
-
-.glass {
-  background: rgb(var(--color-surface-950) / 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgb(var(--color-surface-700) / 0.5);
-}
-
-.glass-light {
-  background: rgb(var(--color-surface-800) / 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgb(var(--color-surface-700) / 0.4);
-}
-
-/* ============================================ */
-/* Hovering Bars — floating bar & lift utilities */
-/* ============================================ */
-
-/* A detached, elevated "bar" — the base building block of the UI */
-.bar-float {
-  background: rgb(var(--color-surface-900) / 0.72);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgb(var(--color-surface-700) / 0.6);
-  box-shadow: var(--shadow-float);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-/* Lifts an element on hover — the literal "hovering" interaction */
-.hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-float-lg);
-}
-
-.hover-lift:active {
-  transform: translateY(0);
-}
-
-.text-flame {
-  background: linear-gradient(90deg, #fb5b1f 0%, #e1427f 50%, #7a2cfd 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 /* ============================================ */
 /* Scrollbar utilities                          */
@@ -390,4 +321,68 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ============================================ */
+/* Aceternity-inspired surface & effect kit      */
+/* ============================================ */
+
+/* Dot grid canvas, faded toward the edges */
+.bg-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgb(var(--dot-color) / var(--dot-opacity)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--dot-color) / var(--dot-opacity)) 1px, transparent 1px);
+}
+
+/* Fades a background pattern out toward the edges */
+.mask-fade {
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+}
+
+/* Elevated glass panel with a hairline top highlight */
+.panel {
+  background: rgb(var(--color-surface-900));
+  border: 1px solid rgb(var(--color-surface-700) / 0.55);
+  box-shadow: inset 0 1px 0 var(--panel-highlight), var(--shadow-float);
+}
+
+/* Opaque variant for overlays (dropdowns, toasts) that sit on top of text */
+.panel.panel-solid {
+  background: rgb(var(--color-surface-900) / 0.97);
+}
+
+/* Small pill chips / icon buttons */
+.chip {
+  background: rgb(var(--color-surface-800) / 0.6);
+  border: 1px solid rgb(var(--color-surface-700) / 0.6);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.chip:hover {
+  background: rgb(var(--color-surface-700) / 0.6);
+  border-color: rgb(var(--color-surface-600) / 0.8);
+}
+
+/* Quiet pulsing text for "thinking" / "reading docs" states */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.text-shimmer {
+  color: rgb(var(--color-surface-400));
+  animation: soft-pulse 1.6s ease-in-out infinite;
+}
+
+/* Word swap used by the hero's FlipWords */
+@keyframes placeholder-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-placeholder-in { animation: placeholder-in 0.35s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .text-shimmer {
+    animation: none !important;
+  }
 }

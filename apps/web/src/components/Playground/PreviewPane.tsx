@@ -60,12 +60,6 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ url }) => {
         <div className="h-full flex flex-col bg-surface-950" id="preview-pane">
             {/* Browser chrome */}
             <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-900 border-b border-surface-800/40 flex-shrink-0">
-                {/* Traffic lights */}
-                <div className="flex gap-1 flex-shrink-0">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-                </div>
 
                 {/* Navigation buttons */}
                 <div className="flex items-center gap-0.5 flex-shrink-0">

@@ -1,20 +1,16 @@
 import { useState, useEffect } from "react";
 import type { ModelInfo } from "../types";
-import { useChatStore } from "../store/chatStore";
+import { useChatStore, DEFAULT_MODEL } from "../store/chatStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-// Fallback list (Groq models) used only if the /api/models request fails.
+// Fallback list used only if the /api/models request fails.
 const FALLBACK_MODELS: ModelInfo[] = [
     {
-        id: "llama-3.3-70b-versatile",
-        name: "Llama 3.3 70B Versatile",
-        description: "Strong general + coding model. Great default.",
-    },
-    {
-        id: "llama-3.1-8b-instant",
-        name: "Llama 3.1 8B Instant",
-        description: "Small, extremely fast model for quick iteration.",
+        id: DEFAULT_MODEL,
+        name: "Nemotron 3 Ultra 550B",
+        description: "NVIDIA's flagship reasoning model. Best quality with reliable tool use.",
+        provider: "nvidia",
     },
 ];
 
@@ -29,10 +25,11 @@ export function useModels() {
 
         // If the persisted model isn't one the backend offers (e.g. a stale
         // OpenRouter id from a previous version), fall back to the first model.
-        function reconcile(list: ModelInfo[]) {
+        function reconcile(list: ModelInfo[], serverDefault?: string) {
             if (list.length === 0) return;
             if (!list.some((m) => m.id === selectedModel)) {
-                setModel(list[0].id);
+                const fallback = list.find((m) => m.id === serverDefault) ?? list[0];
+                setModel(fallback.id);
             }
         }
 
@@ -40,10 +37,13 @@ export function useModels() {
             try {
                 const response = await fetch(`${API_URL}/api/models`);
                 if (response.ok) {
-                    const data = (await response.json()) as { models: ModelInfo[] };
+                    const data = (await response.json()) as {
+                        models: ModelInfo[];
+                        default?: string;
+                    };
                     if (!cancelled) {
                         setModels(data.models);
-                        reconcile(data.models);
+                        reconcile(data.models, data.default);
                     }
                     return;
                 }

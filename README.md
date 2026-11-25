@@ -30,7 +30,7 @@ StackLearn is an open-source, locally-runnable web app with two panels:
 │   POST /api/chat  ──► Agent Orchestrator                    │
 │                              │                              │
 │                    ┌─────────▼──────────┐                   │
-│                    │     Groq API       │                   │
+│                    │ NVIDIA NIM / Groq  │                   │
 │                    │  (LLM + tools)     │                   │
 │                    └─────────┬──────────┘                   │
 │                              │                              │
@@ -46,7 +46,8 @@ StackLearn is an open-source, locally-runnable web app with two panels:
 ### Prerequisites
 
 - [Bun](https://bun.sh) installed (`curl -fsSL https://bun.sh/install | bash`)
-- A [Groq](https://console.groq.com) API key (starts with `gsk_...`)
+- An [NVIDIA NIM](https://build.nvidia.com) API key (starts with `nvapi-...`) — the default provider. The free tier allows 40 requests/minute; the server retries rate-limited calls with backoff.
+- Optional: a [Groq](https://console.groq.com) API key (starts with `gsk_...`) to enable the Groq models in the model picker
 
 ### 1. Install dependencies
 
@@ -60,11 +61,13 @@ bun install
 cp .env.example apps/server/.env
 ```
 
-Edit `apps/server/.env` and add your `GROQ_API_KEY`:
+Edit `apps/server/.env` and add your `NVIDIA_API_KEY` (and optionally `GROQ_API_KEY`):
 
 ```env
-GROQ_API_KEY=gsk_your-key-here
+NVIDIA_API_KEY=nvapi-your-key-here
 ```
+
+The default model is NVIDIA's **Nemotron 3 Ultra 550B** (`nvidia/nemotron-3-ultra-550b-a55b`); override it with `DEFAULT_MODEL`.
 
 ### 3. Start development servers
 

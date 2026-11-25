@@ -1,45 +1,91 @@
-import React from "react";
-import { ModelSelector } from "./ModelSelector";
+// Header adapted from Aceternity UI — Resizable Navbar
+// (https://ui.aceternity.com/components/resizable-navbar).
+// The navbar's two states map to the app's two modes: transparent and wide on
+// the landing page, a compact bordered bar once the workspace is open.
+import React, { useState } from "react";
+import { motion } from "motion/react";
 import { ThemeToggle } from "./ThemeToggle";
+import { cn } from "../../lib/utils";
 
-export const Header: React.FC = () => {
+const REPO_URL = "https://github.com/preeeetham/stacklearn";
+
+const NAV_ITEMS = [
+    { name: "GitHub", link: REPO_URL },
+    { name: "Docs", link: `${REPO_URL}#readme` },
+    { name: "Report an issue", link: `${REPO_URL}/issues` },
+];
+
+interface HeaderProps {
+    /** Present in workspace mode: starts a new chat. */
+    onNewChat?: () => void;
+}
+
+const NavItems: React.FC = () => {
+    const [hovered, setHovered] = useState<number | null>(null);
+    return (
+        <div
+            onMouseLeave={() => setHovered(null)}
+            className="absolute inset-0 hidden items-center justify-center gap-1 text-sm font-medium md:flex pointer-events-none"
+        >
+            {NAV_ITEMS.map((item, idx) => (
+                <a
+                    key={item.name}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseEnter={() => setHovered(idx)}
+                    className="pointer-events-auto relative px-4 py-2 text-surface-400 transition-colors hover:text-surface-100"
+                >
+                    {hovered === idx && (
+                        <motion.div
+                            layoutId="nav-hovered"
+                            className="absolute inset-0 h-full w-full rounded-full bg-surface-800"
+                            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                        />
+                    )}
+                    <span className="relative z-20">{item.name}</span>
+                </a>
+            ))}
+        </div>
+    );
+};
+
+export const Header: React.FC<HeaderProps> = ({ onNewChat }) => {
+    const compact = !!onNewChat;
+
     return (
         <header className="relative z-50 px-3 pt-3" id="app-header">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bar-float">
-                {/* Logo */}
-                <div className="flex items-center gap-2.5">
-                    <img
-                        src="/logo.png"
-                        alt="StackLearn"
-                        className="w-8 h-8 object-contain drop-shadow-[0_2px_8px_rgba(122,44,253,0.35)]"
-                    />
-                    <div>
-                        <h1 className="text-sm font-bold text-surface-100 tracking-tight leading-none">
-                            StackLearn
-                        </h1>
-                        <p className="text-[10px] text-surface-500 leading-none mt-0.5">
-                            Learn any tech stack with AI
-                        </p>
-                    </div>
-                </div>
+            <div
+                className={cn(
+                    "relative mx-auto flex w-full items-center justify-between rounded-full px-3 py-1.5 transition-[background-color,border-color,box-shadow,max-width] duration-500",
+                    compact
+                        ? "max-w-[1600px] border border-surface-800 bg-surface-900/80 shadow-float backdrop-blur-md"
+                        : "max-w-6xl border border-transparent bg-transparent"
+                )}
+            >
+                <button
+                    onClick={onNewChat}
+                    disabled={!onNewChat}
+                    title={onNewChat ? "New chat" : undefined}
+                    className="relative z-20 flex items-center gap-2 rounded-full py-1 pl-1 pr-3"
+                >
+                    <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+                    <span className="text-sm font-semibold tracking-tight text-surface-100">StackLearn</span>
+                </button>
 
-                {/* Center - Model Selector */}
-                <ModelSelector />
+                <NavItems />
 
-                {/* Right - theme toggle + GitHub link */}
-                <div className="flex items-center gap-2">
+                <div className="relative z-20 flex items-center gap-2">
                     <ThemeToggle />
-                    <a
-                        href="https://github.com/preeeetham/stacklearn"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-surface-400 hover:text-surface-100 transition-colors bg-surface-800/50 border border-surface-700/50 hover:border-surface-600"
-                    >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                        </svg>
-                        GitHub
-                    </a>
+                    {onNewChat && (
+                        <button
+                            onClick={onNewChat}
+                            id="new-chat-button"
+                            className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white shadow-float transition-colors hover:bg-brand-600"
+                        >
+                            New chat
+                        </button>
+                    )}
                 </div>
             </div>
         </header>

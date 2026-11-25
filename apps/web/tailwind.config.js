@@ -4,8 +4,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Inter"', "system-ui", "-apple-system", "sans-serif"],
-                mono: ['"JetBrains Mono"', '"Fira Code"', "monospace"],
+                sans: ['"Geist"', '"Inter"', "system-ui", "-apple-system", "sans-serif"],
+                mono: ['"Geist Mono"', '"JetBrains Mono"', "monospace"],
             },
             colors: {
                 // Every color resolves through a CSS variable (defined per-theme in index.css)
@@ -95,7 +95,6 @@ export default {
             },
             backgroundImage: {
                 "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-                flame: "linear-gradient(90deg, #fb5b1f 0%, #e1427f 50%, #7a2cfd 100%)",
             },
             boxShadow: {
                 float: "var(--shadow-float)",
