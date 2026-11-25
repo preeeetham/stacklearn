@@ -9,27 +9,27 @@
 :root,
 .dark {
   /* Neutral, faintly cool near-black scale (Aceternity-style canvas) */
-  --color-surface-50: 250 250 252;
-  --color-surface-100: 240 240 245;
-  --color-surface-200: 218 218 228;
-  --color-surface-300: 186 186 200;
-  --color-surface-400: 140 140 158;
-  --color-surface-500: 100 100 118;
-  --color-surface-600: 66 66 80;
-  --color-surface-700: 42 42 54;
-  --color-surface-800: 26 26 34;
-  --color-surface-850: 17 17 23;
-  --color-surface-900: 11 11 16;
-  --color-surface-950: 4 4 7;
+  --color-surface-50: 250 250 250;
+  --color-surface-100: 244 244 245;
+  --color-surface-200: 228 228 231;
+  --color-surface-300: 212 212 216;
+  --color-surface-400: 161 161 170;
+  --color-surface-500: 113 113 122;
+  --color-surface-600: 82 82 91;
+  --color-surface-700: 50 50 56;
+  --color-surface-800: 35 35 39;
+  --color-surface-850: 24 24 27;
+  --color-surface-900: 17 17 19;
+  --color-surface-950: 9 9 11;
 
-  --color-brand-50: 245 240 255;
-  --color-brand-100: 236 225 255;
-  --color-brand-200: 217 194 255;
-  --color-brand-300: 196 165 255;
-  --color-brand-400: 165 120 255;
-  --color-brand-500: 132 64 255;
-  --color-brand-600: 110 40 230;
-  --color-brand-700: 88 28 190;
+  --color-brand-50: 239 246 255;
+  --color-brand-100: 219 234 254;
+  --color-brand-200: 191 219 254;
+  --color-brand-300: 147 197 253;
+  --color-brand-400: 96 165 250;
+  --color-brand-500: 59 130 246;
+  --color-brand-600: 37 99 235;
+  --color-brand-700: 29 78 216;
 
   --color-accent-50: 236 253 245;
   --color-accent-100: 209 250 229;
@@ -49,8 +49,8 @@
   --color-glow-pink: 236 72 153;
 
   --dot-color: 255 255 255;
-  --dot-opacity: 0.09;
-  --panel-highlight: rgba(255, 255, 255, 0.05);
+  --dot-opacity: 0.06;
+  --panel-highlight: rgba(255, 255, 255, 0.04);
 
   --shadow-float: 0 16px 40px -12px rgba(0, 0, 0, 0.7), 0 2px 8px -2px rgba(0, 0, 0, 0.4);
   --shadow-float-lg: 0 30px 70px -16px rgba(0, 0, 0, 0.75), 0 4px 16px -4px rgba(0, 0, 0, 0.4);
@@ -60,27 +60,27 @@
 }
 
 .light {
-  --color-surface-50: 9 9 14;
-  --color-surface-100: 20 20 28;
-  --color-surface-200: 40 40 52;
-  --color-surface-300: 68 68 82;
-  --color-surface-400: 104 104 120;
-  --color-surface-500: 136 136 152;
-  --color-surface-600: 170 170 186;
-  --color-surface-700: 214 214 226;
-  --color-surface-800: 232 232 240;
-  --color-surface-850: 241 241 247;
+  --color-surface-50: 9 9 11;
+  --color-surface-100: 24 24 27;
+  --color-surface-200: 39 39 42;
+  --color-surface-300: 63 63 70;
+  --color-surface-400: 82 82 91;
+  --color-surface-500: 113 113 122;
+  --color-surface-600: 161 161 170;
+  --color-surface-700: 212 212 216;
+  --color-surface-800: 228 228 231;
+  --color-surface-850: 240 240 242;
   --color-surface-900: 255 255 255;
-  --color-surface-950: 248 248 251;
+  --color-surface-950: 250 250 250;
 
-  --color-brand-50: 245 240 255;
-  --color-brand-100: 236 225 255;
-  --color-brand-200: 217 194 255;
-  --color-brand-300: 104 23 224;
-  --color-brand-400: 98 30 214;
-  --color-brand-500: 122 44 253;
-  --color-brand-600: 104 23 224;
-  --color-brand-700: 85 16 184;
+  --color-brand-50: 239 246 255;
+  --color-brand-100: 219 234 254;
+  --color-brand-200: 191 219 254;
+  --color-brand-300: 29 78 216;
+  --color-brand-400: 37 99 235;
+  --color-brand-500: 37 99 235;
+  --color-brand-600: 29 78 216;
+  --color-brand-700: 30 64 175;
 
   --color-accent-50: 236 253 245;
   --color-accent-100: 209 250 229;
@@ -99,9 +99,9 @@
   --color-glow-purple: 147 51 234;
   --color-glow-pink: 219 39 119;
 
-  --dot-color: 20 20 40;
-  --dot-opacity: 0.12;
-  --panel-highlight: rgba(255, 255, 255, 0.9);
+  --dot-color: 9 9 11;
+  --dot-opacity: 0.07;
+  --panel-highlight: rgba(255, 255, 255, 1);
 
   --shadow-float: 0 16px 40px -14px rgba(20, 20, 40, 0.14), 0 2px 8px -2px rgba(20, 20, 40, 0.06);
   --shadow-float-lg: 0 30px 70px -18px rgba(20, 20, 40, 0.2), 0 4px 16px -4px rgba(20, 20, 40, 0.08);
@@ -328,16 +328,22 @@ body {
 /* ============================================ */
 
 /* Dot grid canvas, faded toward the edges */
-.bg-dot-grid {
-  background-image: radial-gradient(rgb(var(--dot-color) / var(--dot-opacity)) 1px, transparent 1px);
-  background-size: 22px 22px;
+.bg-grid {
+  background-size: 48px 48px;
+  background-image:
+    linear-gradient(to right, rgb(var(--dot-color) / var(--dot-opacity)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--dot-color) / var(--dot-opacity)) 1px, transparent 1px);
+}
+
+/* Fades a background pattern out toward the edges */
+.mask-fade {
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
 }
 
 /* Elevated glass panel with a hairline top highlight */
 .panel {
-  background: rgb(var(--color-surface-900) / 0.78);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  background: rgb(var(--color-surface-900));
   border: 1px solid rgb(var(--color-surface-700) / 0.55);
   box-shadow: inset 0 1px 0 var(--panel-highlight), var(--shadow-float);
 }
@@ -369,32 +375,14 @@ body {
 }
 
 /* Word swap used by the hero's FlipWords */
-@keyframes word-in {
-  0% { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.animate-word-in { animation: word-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-
 @keyframes placeholder-in {
   0% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 .animate-placeholder-in { animation: placeholder-in 0.35s ease-out both; }
 
-@keyframes vanish {
-  0% { opacity: 1; transform: translateY(0); filter: blur(0); }
-  100% { opacity: 0; transform: translateY(-10px); filter: blur(6px); }
-}
-.animate-vanish { animation: vanish 0.45s ease-in both; }
-
-@keyframes rise {
-  0% { opacity: 0; transform: translateY(14px); filter: blur(6px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-}
-.animate-rise { animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-
 @media (prefers-reduced-motion: reduce) {
-  .text-shimmer, .animate-rise, .animate-word-in {
+  .text-shimmer {
     animation: none !important;
   }
 }
