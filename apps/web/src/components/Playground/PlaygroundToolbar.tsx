@@ -55,15 +55,20 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-surface-800/40" id="playground-toolbar">
-            <div className="flex items-center gap-1 p-1 rounded-full bg-surface-900/60 border border-surface-800/50">
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-surface-800/70" id="playground-toolbar">
+            <div className="hidden xl:flex items-center gap-1.5 pr-2 text-xs text-surface-500">
+                <span className="pl-1 font-medium text-surface-300">playground</span>
+                <span>·</span>
+                <span>{Object.keys(files).length} files</span>
+            </div>
+            <div className="flex items-center gap-1">
                 {/* Run / Stop button */}
                 {isRunning && !isInstalling ? (
                     <button
                         onClick={onStop}
                         id="stop-button"
                         title="Stop (⌘ Enter)"
-                        className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-all duration-200 border border-red-500/30"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-all duration-200 border border-red-500/30 active:scale-95"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                             <path fillRule="evenodd" d="M5.5 5h9a.5.5 0 01.5.5v9a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-9a.5.5 0 01.5-.5z" clipRule="evenodd" />
@@ -76,7 +81,7 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                         disabled={isInstalling || !isRunnable}
                         id="run-button"
                         title={isRunnable ? "Run (⌘ Enter)" : "Reference only — nothing to run"}
-                        className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet disabled:from-surface-700 disabled:via-surface-700 disabled:to-surface-700 text-white transition-all duration-200 shadow-flame disabled:shadow-none disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-brand-500 hover:bg-brand-600 disabled:bg-surface-800 disabled:text-surface-500 text-white transition-colors duration-200 active:scale-95 disabled:cursor-not-allowed"
                     >
                         {isInstalling ? (
                             <>
@@ -104,7 +109,7 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                 how "localhost:3000" is actually reached (localhost won't work —
                 the sandbox runs in the browser). */}
             {ports.length > 0 && (
-                <div className="flex items-center gap-1 p-1 rounded-full bg-surface-900/60 border border-surface-800/50">
+                <div className="flex items-center gap-1 p-1 rounded-full chip">
                     <span className="pl-2 pr-0.5 text-[10px] font-medium text-surface-500 uppercase tracking-wider">
                         Ports
                     </span>
@@ -121,8 +126,8 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                                 }
                                 className={`flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 ${
                                     active
-                                        ? "bg-surface-800/60 border border-surface-700/40 text-brand-300"
-                                        : "text-surface-500 hover:text-surface-300 hover:bg-surface-800/30 border border-transparent"
+                                        ? "bg-surface-900 border border-surface-600/70 text-surface-50"
+                                        : "text-surface-400 hover:text-surface-100 hover:bg-surface-800/60 border border-transparent"
                                 }`}
                             >
                                 <span className="font-mono">:{port}</span>
@@ -137,7 +142,6 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
             {/* Status indicator */}
             {isRunning && (
                 <div className="flex items-center gap-1.5 text-xs text-accent-400 px-3 py-1.5 rounded-full bg-accent-500/10 border border-accent-500/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
                     Running
                 </div>
             )}
@@ -147,7 +151,7 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
                 onClick={handleCopyFiles}
                 id="copy-files-button"
                 title="Copy files to clipboard"
-                className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/70 hover:bg-surface-700 text-surface-300 hover:text-surface-100 transition-colors border border-surface-700/50"
+                className="chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-surface-300 hover:text-surface-100"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
                     <path d="M5.5 3.5A1.5 1.5 0 0 1 7 2h2.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 1 .439 1.061V9.5A1.5 1.5 0 0 1 12 11V8.621a3 3 0 0 0-.879-2.121L9 4.379A3 3 0 0 0 6.879 3.5H5.5Z" />
@@ -160,7 +164,7 @@ export const PlaygroundToolbar: React.FC<PlaygroundToolbarProps> = ({
             <button
                 onClick={handleExport}
                 id="export-button"
-                className="hover-lift flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface-800/70 hover:bg-surface-700 text-surface-300 hover:text-surface-100 transition-colors border border-surface-700/50"
+                className="chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-surface-300 hover:text-surface-100"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                     <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />

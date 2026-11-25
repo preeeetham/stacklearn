@@ -215,26 +215,34 @@ export const PlaygroundPanel: React.FC = () => {
     // Empty state
     if (!config) {
         return (
-            <div className="flex items-center justify-center h-full bg-transparent" id="playground-panel-empty">
-                <div className="text-center max-w-sm animate-fade-in">
-                    <div className="relative mb-4">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-20 h-20 rounded-full bg-flame-violet/10 animate-pulse-slow" />
+            <div className="relative flex h-full items-center justify-center overflow-hidden" id="playground-panel-empty">
+                                <div className="relative max-w-sm px-6 text-center animate-fade-in">
+                    {/* Skeleton code window */}
+                    <div className="panel mx-auto mb-6 w-64 rounded-2xl p-3 text-left ">
+                        <div className="space-y-2">
+                            <div className="h-1.5 w-1/2 rounded-full bg-brand-500/70" />
+                            <div className="h-1.5 w-4/5 rounded-full bg-surface-700" />
+                            <div className="h-1.5 w-2/3 rounded-full bg-surface-700" />
+                            <div className="h-1.5 w-3/4 rounded-full bg-surface-600" />
+                            <div className="h-1.5 w-1/3 rounded-full bg-surface-700" />
                         </div>
-                        <div className="relative text-4xl animate-float">⚡</div>
                     </div>
-                    <h3 className="text-base font-semibold text-surface-300 mb-2">
-                        Playground
-                    </h3>
-                    <p className="text-sm text-surface-500 leading-relaxed">
-                        Ask a question in the chat and a live, runnable playground will appear here automatically.
+                    <h3 className="mb-2 text-base font-medium text-surface-100">Your playground lands here</h3>
+                    <p className="text-sm leading-relaxed text-surface-400">
+                        Ask about a technology in the chat and a runnable project shows up here, with an editor, a terminal and a live preview.
                     </p>
-                    {!isBooted && (
-                        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-surface-600">
-                            <div className="w-3 h-3 border-2 border-surface-600/30 border-t-surface-500 rounded-full animate-spin" />
-                            Booting WebContainer...
-                        </div>
-                    )}
+                    <div className="mt-5 inline-flex items-center gap-2 rounded-full chip px-3 py-1 text-xs text-surface-400">
+                        {isBooted ? (
+                            <>
+                                Sandbox ready
+                            </>
+                        ) : (
+                            <>
+                                <span className="h-3 w-3 animate-spin rounded-full border-2 border-surface-600/40 border-t-surface-300" />
+                                Booting sandbox…
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -264,10 +272,10 @@ export const PlaygroundPanel: React.FC = () => {
                 learner wondering why Run does nothing. */}
             {!isRunnable && (
                 <div
-                    className="mx-3 mt-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex-shrink-0"
+                    className="mx-3 mt-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex-shrink-0"
                     id="playground-reference-only-banner"
                 >
-                    📖 Reference only — this demo can't run in the browser sandbox. Check the files (e.g. README) for details.
+                    Reference only: this demo can't run in the browser sandbox. See the files (for example the README) for details.
                 </div>
             )}
 
@@ -276,10 +284,10 @@ export const PlaygroundPanel: React.FC = () => {
                 {/* File tree sidebar */}
                 <div
                     style={{ width: `${sidebarWidth}px` }}
-                    className="flex-shrink-0 flex flex-col border-r border-surface-800/40 bg-surface-900/30 overflow-hidden"
+                    className="flex-shrink-0 flex flex-col border-r border-surface-800/70 bg-surface-950/30 overflow-hidden"
                 >
-                    <div className="px-3 py-2 text-[10px] font-bold text-surface-500 uppercase tracking-wider flex-shrink-0">
-                        Files
+                    <div className="px-3 pt-3 pb-1.5 text-[10px] font-semibold text-surface-500 uppercase tracking-wider flex-shrink-0">
+                        Explorer
                     </div>
                     <div className="flex-1 min-h-0 overflow-hidden">
                         <FileTree
@@ -306,8 +314,8 @@ export const PlaygroundPanel: React.FC = () => {
                     <div
                         className={`w-0.5 h-12 rounded-full transition-all duration-200 ${
                             isSidebarResizing
-                                ? "bg-gradient-to-b from-flame-orange via-flame-rose to-flame-violet h-20 shadow-flame"
-                                : "bg-surface-700 group-hover:bg-gradient-to-b group-hover:from-flame-orange group-hover:via-flame-rose group-hover:to-flame-violet group-hover:h-20"
+                                ? "bg-brand-500 h-20"
+                                : "bg-surface-700 group-hover:bg-brand-500 group-hover:h-20"
                         }`}
                     />
                 </div>
@@ -318,7 +326,7 @@ export const PlaygroundPanel: React.FC = () => {
                         a port is selected (toggled from the toolbar). */}
                     <div style={{ height: `${editorPct}%` }} className="flex flex-col overflow-hidden min-h-0">
                         {/* Multi-tab bar */}
-                        <div className="flex items-center px-2 py-1 bg-surface-900/50 border-b border-surface-800/40 overflow-x-auto scrollbar-hide flex-shrink-0">
+                        <div className="flex items-center gap-0.5 px-2 py-1.5 bg-surface-950/30 border-b border-surface-800/70 overflow-x-auto scrollbar-hide flex-shrink-0">
                             {openTabs.map((tab) => {
                                 const isActive = tab === activeFile && !showPreview;
                                 const baseName = tab.split("/").pop() || tab;
@@ -327,8 +335,8 @@ export const PlaygroundPanel: React.FC = () => {
                                         key={tab}
                                         className={`group flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs cursor-pointer transition-all duration-150 flex-shrink-0 ${
                                             isActive
-                                                ? "bg-surface-800/60 border border-surface-700/40 text-brand-300"
-                                                : "text-surface-500 hover:text-surface-300 hover:bg-surface-800/30 border border-transparent"
+                                                ? "bg-surface-800 border border-surface-700/70 text-surface-50 shadow-[inset_0_-1px_0_rgb(var(--color-brand-500))]"
+                                                : "text-surface-500 hover:text-surface-200 hover:bg-surface-800/50 border border-transparent"
                                         }`}
                                         onClick={() => showFile(tab)}
                                         onMouseDown={(e) => {
@@ -359,7 +367,7 @@ export const PlaygroundPanel: React.FC = () => {
                                 );
                             })}
                             {showPreview && activePreviewPort !== null && (
-                                <div className="flex items-center ml-1 px-2.5 py-1 rounded-lg text-xs bg-surface-800/60 border border-surface-700/40 text-brand-300 flex-shrink-0">
+                                <div className="flex items-center gap-1.5 ml-1 px-2.5 py-1 rounded-lg text-xs bg-surface-800 border border-surface-700/70 text-surface-50 flex-shrink-0">
                                     <span className="font-mono">Preview :{activePreviewPort}</span>
                                 </div>
                             )}
@@ -400,15 +408,15 @@ export const PlaygroundPanel: React.FC = () => {
                         <div
                             className={`w-12 h-0.5 rounded-full transition-all duration-200 ${
                                 isResizing
-                                    ? "bg-gradient-to-r from-flame-orange via-flame-rose to-flame-violet w-20 shadow-flame"
-                                    : "bg-surface-700 group-hover:bg-gradient-to-r group-hover:from-flame-orange group-hover:via-flame-rose group-hover:to-flame-violet group-hover:w-20"
+                                    ? "bg-brand-500 w-20"
+                                    : "bg-surface-700 group-hover:bg-brand-500 group-hover:w-20"
                             }`}
                         />
                     </div>
 
                     {/* Bottom panel — always the terminal now that the preview
                         lives in the large editor area above. */}
-                    <div style={{ height: `${100 - editorPct}%` }} className="flex flex-col overflow-hidden min-h-0 border-t border-surface-800/40">
+                    <div style={{ height: `${100 - editorPct}%` }} className="flex flex-col overflow-hidden min-h-0 border-t border-surface-800/70">
                         <div className="flex-1 min-h-0">
                             <Terminal
                                 output={terminalOutput}

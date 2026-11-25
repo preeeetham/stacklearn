@@ -11,7 +11,7 @@ export const ThemeToggle: React.FC = () => {
             id="theme-toggle"
             aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
             title={`Switch to ${isDark ? "light" : "dark"} mode`}
-            className="hover-lift flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-full bg-surface-800/50 border border-surface-700/50 hover:border-brand-500/40 text-surface-400 hover:text-surface-100 transition-all duration-200"
+            className="chip flex items-center justify-center w-8 h-8 flex-shrink-0 rounded-full text-surface-400 hover:text-surface-100"
         >
             {isDark ? (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
